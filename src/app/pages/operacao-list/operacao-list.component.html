@@ -1,0 +1,67 @@
+<div class="container mt-5">
+
+  <div class="d-flex justify-content-between mb-3">
+
+    <h2>Histórico de Operações</h2>
+
+    <a
+      routerLink="/"
+      class="btn btn-secondary">
+
+      Voltar
+    </a>
+
+  </div>
+
+  <table class="table table-striped">
+
+    <thead>
+
+    <tr>
+
+      <th>ID</th>
+
+      <th>Ação</th>
+
+      <th>Tipo</th>
+
+      <th>Qtd</th>
+
+      <th>Preço Unitário</th>
+
+      <th>Valor Total</th>
+
+      <th>Preço Médio</th>
+
+      <th>Lucro/Prejuízo</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody>
+
+    <tr *ngFor="let op of operacoes">
+
+      <td>{{ op.id }}</td>
+
+      <td>{{ op.acao.ticker }}</td>
+
+      <td>{{ op.tipoOperacao }}</td>
+
+      <td>{{ op.quantidade }}</td>
+
+      <td>{{ op.precoUnitario | number:'1.2-2' }}</td>
+
+      <td>{{ op.valorTotal | number:'1.2-2'}}</td>
+
+      <td>{{op.precoMedio | number:'1.2-2'}}</td>
+
+      <td>{{ op.lucroPrejuizo | number:'1.2-2'}}</td>
+    </tr>
+
+    </tbody>
+
+  </table>
+
+</div>

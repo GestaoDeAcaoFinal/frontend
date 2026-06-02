@@ -1,0 +1,39 @@
+<div class="container mt-5">
+
+  <h2>Cadastrar Ação</h2>
+
+  <hr>
+
+  <div class="mb-3">
+    <label class="form-label">Ticker</label>
+
+    <input
+      type="text"
+      class="form-control"
+      [(ngModel)]="ticker">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">ID da Corretora</label>
+
+    <input
+      type="number"
+      class="form-control"
+      [(ngModel)]="corretoraId">
+  </div>
+
+  <button
+    class="btn btn-success"
+    (click)="salvar()">
+
+    Salvar
+  </button>
+
+  <a
+    routerLink="/"
+    class="btn btn-secondary ms-2">
+
+    Voltar
+  </a>
+
+</div>
