@@ -3,6 +3,7 @@
   --color-navy-900: #0b223d;
   --color-emerald-600: #079669;
   --color-emerald-700: #047857;
+  --color-emerald-800: #036349;
   --color-slate-700: #334155;
   --color-slate-500: #64748b;
   --color-surface: #ffffff;
@@ -30,8 +31,14 @@ body { margin: 0; color: var(--color-navy-950); background: var(--color-canvas);
   display: inline-flex; font-weight: 700; justify-content: center; min-height: 2.75rem;
   padding: .7rem 1rem; text-decoration: none; transition: background-color .2s ease, transform .2s ease;
 }
-.btn-finance-primary { color: #fff; background: var(--color-emerald-600); }
-.btn-finance-primary:hover { color: #fff; background: var(--color-emerald-700); transform: translateY(-1px); }
+.btn-finance-primary { color: #fff; background: var(--color-emerald-700); }
+.btn-finance-primary:hover { color: #fff; background: var(--color-emerald-800); transform: translateY(-1px); }
 .btn-finance-secondary { color: var(--color-navy-900); background: #fff; border-color: var(--color-border); }
-:where(a, button, input, select):focus-visible { outline: 3px solid rgba(7, 150, 105, .35); outline-offset: 2px; }
+:where(a, button, input, select):focus-visible { outline: 3px solid var(--color-emerald-600); outline-offset: 2px; }
 :where(button, .btn-finance-primary, .btn-finance-secondary):disabled { cursor: not-allowed; opacity: .6; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-finance-primary,
+  .btn-finance-secondary { transition: none; }
+  .btn-finance-primary:hover { transform: none; }
+}
