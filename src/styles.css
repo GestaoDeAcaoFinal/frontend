@@ -1,1 +1,37 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --color-navy-950: #071a2f;
+  --color-navy-900: #0b223d;
+  --color-emerald-600: #079669;
+  --color-emerald-700: #047857;
+  --color-slate-700: #334155;
+  --color-slate-500: #64748b;
+  --color-surface: #ffffff;
+  --color-canvas: #f3f7fa;
+  --color-border: #dbe4ea;
+  --color-danger: #b42318;
+  --radius-sm: .65rem;
+  --radius-lg: 1rem;
+  --shadow-card: 0 14px 35px rgba(7, 26, 47, .08);
+}
+
+body { margin: 0; color: var(--color-navy-950); background: var(--color-canvas); }
+.app-container { width: min(1180px, calc(100% - 2rem)); margin-inline: auto; }
+.page-shell { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; padding: 2.25rem 0 3.5rem; }
+.surface-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); }
+.page-heading { color: var(--color-navy-950); font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 800; line-height: 1.15; margin: 0; }
+.eyebrow { color: var(--color-emerald-700); font-size: .75rem; font-weight: 800; letter-spacing: .12em; margin: 0 0 .5rem; text-transform: uppercase; }
+.status-panel { color: var(--color-slate-700); padding: 1.25rem; text-align: center; }
+.finance-table { margin: 0; width: 100%; }
+.finance-table th { color: var(--color-slate-500); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; }
+.finance-table :is(th, td) { border-color: var(--color-border); padding: .9rem 1rem; vertical-align: middle; }
+.numeric { font-variant-numeric: tabular-nums; }
+.btn-finance-primary, .btn-finance-secondary {
+  align-items: center; border: 1px solid transparent; border-radius: var(--radius-sm);
+  display: inline-flex; font-weight: 700; justify-content: center; min-height: 2.75rem;
+  padding: .7rem 1rem; text-decoration: none; transition: background-color .2s ease, transform .2s ease;
+}
+.btn-finance-primary { color: #fff; background: var(--color-emerald-600); }
+.btn-finance-primary:hover { color: #fff; background: var(--color-emerald-700); transform: translateY(-1px); }
+.btn-finance-secondary { color: var(--color-navy-900); background: #fff; border-color: var(--color-border); }
+:where(a, button, input, select):focus-visible { outline: 3px solid rgba(7, 150, 105, .35); outline-offset: 2px; }
+:where(button, .btn-finance-primary, .btn-finance-secondary):disabled { cursor: not-allowed; opacity: .6; transform: none; }
