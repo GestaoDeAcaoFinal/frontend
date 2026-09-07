@@ -57,7 +57,7 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Sistema de Gestão de Ações');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Sua carteira, organizada');
   });
 
   it('expõe navegação financeira acessível e ação principal', () => {
