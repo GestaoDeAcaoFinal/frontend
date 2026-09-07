@@ -1,52 +1,71 @@
-<div class="container mt-5">
+<main class="page-shell home-page">
+  <section class="hero-panel" aria-labelledby="home-title">
+    <p class="eyebrow">GESTÃO DE INVESTIMENTOS</p>
+    <h1 id="home-title">Sua carteira, organizada em um só lugar</h1>
+    <p>Cadastre ativos, acompanhe cotações e registre compras e vendas com clareza.</p>
+    <div class="hero-actions">
+      <a class="btn-finance-primary" routerLink="/operacoes/nova">Registrar operação</a>
+      <a class="btn-finance-secondary" routerLink="/acoes">Ver ações</a>
+    </div>
+  </section>
 
-  <div class="text-center">
-    <h1>Sistema de Gestão de Ações</h1>
-    <p class="lead">
-      Projeto desenvolvido com Spring Boot + Angular
-    </p>
-  </div>
-
-  <hr>
-
-  <div class="row mt-4">
-
-    <div class="col-md-6 mb-3">
-      <a routerLink="/corretoras/nova" class="btn btn-primary w-100">
-        Cadastrar Corretora
-      </a>
+  <section aria-labelledby="recursos-title">
+    <div class="section-heading">
+      <p class="eyebrow">CARTEIRA</p>
+      <h2 id="recursos-title">Comece por aqui</h2>
     </div>
 
-    <div class="col-md-6 mb-3">
-      <a routerLink="/corretoras" class="btn btn-secondary w-100">
-        Listar Corretoras
+    <div class="domain-grid">
+      <article class="domain-card domain-card--broker">
+        <p class="domain-card__index">01</p>
+        <h3>Corretoras</h3>
+        <p>Mantenha os dados das instituições usadas na sua carteira.</p>
+        <a routerLink="/corretoras">Ver corretoras</a>
+      </article>
+
+      <article class="domain-card domain-card--asset">
+        <p class="domain-card__index">02</p>
+        <h3>Ações</h3>
+        <p>Organize seus ativos e consulte a cotação mais recente.</p>
+        <a routerLink="/acoes">Ver ações</a>
+      </article>
+
+      <article class="domain-card domain-card--trade">
+        <p class="domain-card__index">03</p>
+        <h3>Operações</h3>
+        <p>Registre compras e vendas e consulte o histórico.</p>
+        <a routerLink="/operacoes">Ver operações</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="quick-panel surface-card" aria-labelledby="atalhos-title">
+    <h2 id="atalhos-title">Acessos rápidos</h2>
+    <div class="quick-grid">
+      <a class="quick-action" routerLink="/corretoras/nova">
+        <strong>Cadastrar corretora</strong>
+        <span>Adicionar uma instituição</span>
+      </a>
+      <a class="quick-action" routerLink="/corretoras">
+        <strong>Listar corretoras</strong>
+        <span>Consultar instituições</span>
+      </a>
+      <a class="quick-action" routerLink="/acoes/nova">
+        <strong>Cadastrar ação</strong>
+        <span>Vincular um novo ativo</span>
+      </a>
+      <a class="quick-action" routerLink="/acoes">
+        <strong>Listar ações</strong>
+        <span>Consultar ativos e cotações</span>
+      </a>
+      <a class="quick-action" routerLink="/operacoes/nova">
+        <strong>Nova operação</strong>
+        <span>Registrar compra ou venda</span>
+      </a>
+      <a class="quick-action" routerLink="/operacoes">
+        <strong>Histórico</strong>
+        <span>Consultar movimentações</span>
       </a>
     </div>
-
-    <div class="col-md-6 mb-3">
-      <a routerLink="/acoes/nova" class="btn btn-success w-100">
-        Cadastrar Ação
-      </a>
-    </div>
-
-    <div class="col-md-6 mb-3">
-      <a routerLink="/acoes" class="btn btn-warning w-100">
-        Listar Ações
-      </a>
-    </div>
-
-    <div class="col-md-6 mb-3">
-      <a routerLink="/operacoes/nova" class="btn btn-dark w-100">
-        Nova Operação
-      </a>
-    </div>
-
-    <div class="col-md-6 mb-3">
-      <a routerLink="/operacoes" class="btn btn-info w-100">
-        Histórico de Operações
-      </a>
-    </div>
-
-  </div>
-
-</div>
+  </section>
+</main>
