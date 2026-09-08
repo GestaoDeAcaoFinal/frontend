@@ -89,4 +89,23 @@ describe('OperacaoFormComponent', () => {
     expect(content).toContain('R$ 70,00');
     expect(content).toContain('04/09/2026 às 10:00');
   });
+
+  it('oculta a operação anterior durante uma nova submissão que termina em erro', () => {
+    const secondRequest = new Subject<OperacaoAcao>();
+    service.comprar.and.returnValues(of(operacao), secondRequest);
+    component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoVenda: null });
+
+    component.salvar();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.result-card')).not.toBeNull();
+
+    component.salvar();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.result-card')).toBeNull();
+
+    secondRequest.error(new ApiError(409, 'Conflito', 'Saldo insuficiente'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Saldo insuficiente');
+    expect(fixture.nativeElement.querySelector('.result-card')).toBeNull();
+  });
 });

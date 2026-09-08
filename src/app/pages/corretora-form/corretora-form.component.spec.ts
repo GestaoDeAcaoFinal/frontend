@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Subject, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { ApiError } from '../../core/api/api-error.interceptor';
 import { Corretora } from '../../core/api/api.models';
@@ -147,5 +147,24 @@ describe('CorretoraFormComponent', () => {
     });
     expect(component.form.controls.cnpj.errors?.['server']).toEqual(['CNPJ já cadastrado']);
     expect(component.state.error?.message).toBe('CNPJ já cadastrado');
+  });
+
+  it('oculta o cadastro anterior durante uma nova submissão que termina em erro', () => {
+    const secondRequest = new Subject<Corretora>();
+    service.salvar.and.returnValues(of(corretora), secondRequest);
+    component.form.setValue({ cnpj: '12345678000190', cep: '01001000' });
+
+    component.salvar();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.result-card')).not.toBeNull();
+
+    component.salvar();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.result-card')).toBeNull();
+
+    secondRequest.error(new ApiError(409, 'Conflito', 'CNPJ já cadastrado'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('CNPJ já cadastrado');
+    expect(fixture.nativeElement.querySelector('.result-card')).toBeNull();
   });
 });

@@ -87,7 +87,7 @@
     </form>
   </section>
 
-  @if (state.data; as a) {
+  @if (!state.loading && !state.error && state.data; as a) {
     <section class="result-card surface-card" aria-labelledby="acao-cadastrada">
       <p class="eyebrow">Cadastro concluído</p>
       <h2 id="acao-cadastrada">Ação cadastrada</h2>

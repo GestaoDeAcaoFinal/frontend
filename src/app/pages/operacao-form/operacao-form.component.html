@@ -118,7 +118,7 @@
     </form>
   </section>
 
-  @if (state.data; as op) {
+  @if (!state.loading && !state.error && state.data; as op) {
     <section class="result-card surface-card" aria-labelledby="operacao-registrada">
       <p class="eyebrow">Movimentação concluída</p>
       <h2 id="operacao-registrada">Operação registrada</h2>

@@ -124,7 +124,12 @@ describe('AppComponent', () => {
       .flatMap(sheet => Array.from(sheet.cssRules))
       .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule);
     const reducedMotionRule = mediaRules.find(rule =>
-      rule.conditionText === '(prefers-reduced-motion: reduce)'
+      rule.conditionText === '(prefers-reduced-motion: reduce)' &&
+      Array.from(rule.cssRules).some(cssRule =>
+        cssRule instanceof CSSStyleRule &&
+        cssRule.style.getPropertyValue('scroll-behavior') === 'auto' &&
+        cssRule.style.getPropertyValue('animation-duration') !== ''
+      )
     );
 
     expect(reducedMotionRule).toBeDefined();
@@ -161,29 +166,39 @@ describe('AppComponent', () => {
     expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('mantém foco perceptível nos fundos claro e escuro', () => {
+  it('mantém foco opaco perceptível nos controles Bootstrap sobre fundos claro e escuro', () => {
     const backgrounds: Rgb[] = [[255, 255, 255], [7, 26, 47]];
+    const controls = [
+      { tagName: 'input', className: 'form-control' },
+      { tagName: 'select', className: 'form-select' },
+      { tagName: 'input', className: 'form-check-input', type: 'checkbox' }
+    ];
 
     for (const background of backgrounds) {
-      const surface = document.createElement('div');
-      const control = document.createElement('input');
-      surface.style.backgroundColor = `rgb(${background.join(', ')})`;
-      surface.style.padding = '1rem';
-      surface.appendChild(control);
-      document.body.appendChild(surface);
-      control.focus();
+      for (const controlCase of controls) {
+        const surface = document.createElement('div');
+        const control = document.createElement(controlCase.tagName) as HTMLInputElement;
+        control.className = controlCase.className;
+        if (controlCase.type) control.type = controlCase.type;
+        surface.style.backgroundColor = `rgb(${background.join(', ')})`;
+        surface.style.padding = '1rem';
+        surface.appendChild(control);
+        document.body.appendChild(surface);
+        control.focus();
 
-      try {
-        expect(control.matches(':focus-visible')).toBeTrue();
-        const outline = compositeColor(
-          parseCssColor(getComputedStyle(control).outlineColor),
-          background
-        );
-        expect(contrastRatio(outline, background))
-          .withContext(`fundo rgb(${background.join(', ')})`)
-          .toBeGreaterThanOrEqual(3);
-      } finally {
-        surface.remove();
+        try {
+          const style = getComputedStyle(control);
+          const outlineColor = parseCssColor(style.outlineColor);
+          expect(control.matches(':focus-visible')).toBeTrue();
+          expect(style.outlineStyle).withContext(controlCase.className).toBe('solid');
+          expect(style.outlineWidth).withContext(controlCase.className).toBe('3px');
+          expect(outlineColor.alpha).withContext(controlCase.className).toBe(1);
+          expect(contrastRatio(outlineColor.rgb, background))
+            .withContext(`${controlCase.className} sobre rgb(${background.join(', ')})`)
+            .toBeGreaterThanOrEqual(3);
+        } finally {
+          surface.remove();
+        }
       }
     }
   });

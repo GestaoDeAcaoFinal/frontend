@@ -115,10 +115,11 @@
         </div>
       </div>
       <div class="table-responsive">
-        <table class="table finance-table finance-table--wide align-middle">
+        <table class="table table-hover finance-table finance-table--wide align-middle">
           <caption class="visually-hidden">Histórico financeiro de compras e vendas</caption>
           <thead>
             <tr>
+              <th class="numeric" scope="col">ID</th>
               <th scope="col">Data</th>
               <th scope="col">Ação</th>
               <th scope="col">Tipo</th>
@@ -132,6 +133,7 @@
           <tbody>
             @for (operacao of listState.data; track operacao.id) {
               <tr>
+                <td class="numeric">{{ operacao.id }}</td>
                 <td><span class="cell-secondary">{{ operacao.dataOperacao ? (operacao.dataOperacao | date:'short') : 'Não informado' }}</span></td>
                 <td><span class="ticker-badge">{{ operacao.acao.ticker }}</span></td>
                 <td>

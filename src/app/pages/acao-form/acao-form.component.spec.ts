@@ -107,4 +107,23 @@ describe('AcaoFormComponent', () => {
     const result = fixture.nativeElement.querySelector('.result-card') as HTMLElement;
     expect(result.textContent?.replace(/\s/g, ' ')).toContain('R$ 35,00');
   });
+
+  it('oculta o cadastro anterior durante uma nova submissão que termina em erro', () => {
+    const secondRequest = new Subject<Acao>();
+    acaoService.salvar.and.returnValues(of(acao), secondRequest);
+    component.form.setValue({ ticker: 'PETR4', corretoraId: 2 });
+
+    component.salvar();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.result-card')).not.toBeNull();
+
+    component.salvar();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.result-card')).toBeNull();
+
+    secondRequest.error(new ApiError(503, 'Indisponível', 'Cotação indisponível'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Cotação indisponível');
+    expect(fixture.nativeElement.querySelector('.result-card')).toBeNull();
+  });
 });

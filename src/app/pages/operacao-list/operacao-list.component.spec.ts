@@ -78,12 +78,24 @@ describe('OperacaoListComponent', () => {
   });
 
   it('expõe filtros textuais e tabela financeira', () => {
-    component.listState.data = [op];
+    const positive = { ...op, lucroPrejuizo: 12 };
+    const negative = { ...op, id: 5, lucroPrejuizo: -7 };
+    component.listState.data = [positive, negative];
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('[aria-label="Filtros de operações"]')).not.toBeNull();
     expect(host.querySelector('[role="group"][aria-label="Filtros de operações"]')).not.toBeNull();
-    expect(host.querySelector('table.finance-table')).not.toBeNull();
+    const table = host.querySelector('table.finance-table') as HTMLTableElement;
+    expect(table.classList).toContain('table-hover');
+    expect(getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()).toBe('#f4f8fa');
+    expect(table.querySelector('thead th')?.textContent?.trim()).toBe('ID');
+    const firstId = table.querySelector('tbody td') as HTMLTableCellElement;
+    expect(firstId.classList).toContain('numeric');
+    expect(firstId.textContent?.trim()).toBe('4');
     expect(host.querySelector('.trade-badge')?.textContent).toContain('COMPRA');
+    expect(getComputedStyle(host.querySelector('.value-positive') as HTMLElement).color)
+      .toBe('rgb(4, 120, 87)');
+    expect(getComputedStyle(host.querySelector('.value-negative') as HTMLElement).color)
+      .toBe('rgb(180, 35, 24)');
   });
 });

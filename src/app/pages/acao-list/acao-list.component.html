@@ -94,10 +94,11 @@
         </div>
       </div>
       <div class="table-responsive">
-        <table class="table finance-table align-middle">
+        <table class="table table-hover finance-table align-middle">
           <caption class="visually-hidden">Lista de ações cadastradas e cotações</caption>
           <thead>
             <tr>
+              <th class="numeric" scope="col">ID</th>
               <th scope="col">Ticker</th>
               <th scope="col">Empresa</th>
               <th scope="col">Corretora</th>
@@ -109,6 +110,7 @@
           <tbody>
             @for (a of listState.data; track a.id) {
               <tr>
+                <td class="numeric">{{ a.id }}</td>
                 <td><span class="ticker-badge">{{ a.ticker }}</span></td>
                 <td>
                   <strong class="cell-primary">{{ a.nomeEmpresa || 'Empresa não informada' }}</strong>

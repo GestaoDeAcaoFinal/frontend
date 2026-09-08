@@ -122,10 +122,14 @@ describe('CorretoraListComponent', () => {
   });
 
   it('organiza consulta e resultados como uma listagem financeira', () => {
+    service.listar.and.returnValue(of([corretora]));
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('div.page-shell')).not.toBeNull();
     expect(host.querySelector('section.filter-panel')).not.toBeNull();
     expect(host.querySelector('a.btn-finance-primary')).not.toBeNull();
+    const table = host.querySelector('table.finance-table') as HTMLTableElement;
+    expect(table.classList).toContain('table-hover');
+    expect(getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()).toBe('#f4f8fa');
   });
 });

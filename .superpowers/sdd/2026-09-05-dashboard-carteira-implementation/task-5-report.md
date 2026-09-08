@@ -98,3 +98,44 @@ Não houve erro de template, CSS ou TypeScript. Nenhuma métrica além das exibi
 Durante esta Task 5, todas as escritas de código/documentação foram direcionadas exclusivamente ao repositório `gestao-acao-front`; nenhuma dependência foi adicionada e nenhum arquivo do backend foi editado. O repositório backend possui alterações próprias preexistentes e fora deste escopo, que foram apenas observadas por uma consulta de status somente leitura.
 
 O commit final será criado com a mensagem `fix: polish responsive portfolio interface`, sem push. O hash será informado no handoff após a criação, evitando uma referência circular dentro do próprio commit.
+
+## Onda final de correções do review
+
+Após a revisão do branch completo, quatro findings adicionais foram reproduzidos e corrigidos sem alterar rotas, contratos de serviço ou estado compartilhado:
+
+1. Os cartões de resultado dos formulários de corretora, ação e operação agora são exibidos apenas quando o sucesso ainda é o estado corrente. Como `toLoadingState` e `toErrorState` preservam `data` deliberadamente para outros fluxos, a correção ficou nos templates: loading e erro ocultam o resultado anterior sem mudar a semântica global de `RequestState`.
+2. A configuração de testes em `angular.json` passou a carregar o Bootstrap antes de `src/styles.css`, reproduzindo a mesma cascata da produção. Os seletores de foco de `.form-control`, `.form-select` e `.form-check-input` ganharam especificidade suficiente para aplicar um outline esmeralda opaco de 3 px. O teste cobre as três classes reais em fundos claro e escuro e exige contraste mínimo de 3:1.
+3. As três tabelas financeiras passaram a usar `table-hover`. `finance-table` define `--bs-table-hover-bg` e `--bs-table-hover-color`, integrando o hover ao mecanismo de células/inset shadow do Bootstrap. As cores de lucro e prejuízo usam seletores de célula suficientemente específicos para vencer a regra de cor da tabela.
+4. As tabelas de ações e operações agora exibem a coluna ID como primeira coluna, com cabeçalho e células usando `.numeric`.
+
+A consulta à documentação atual do Bootstrap 5.3 via Context7 confirmou que controles de formulário usam variáveis/regras próprias de focus border e box-shadow, enquanto variantes e hover de tabelas são aplicados por `--bs-table-*` nas células com inset box-shadow. Isso orientou a correção na camada correta da cascata.
+
+### TDD da onda final
+
+Configuração e testes foram alterados antes dos templates/CSS. A rodada RED focada executou 42 testes:
+
+- **35 success e 7 failed**;
+- os três cartões antigos continuaram visíveis durante a segunda submissão e após erro;
+- controles Bootstrap calcularam `outline-style: none` e `outline-width: 0px`;
+- ações/operações não tinham `table-hover`, mantinham `--bs-table-hover-bg` padrão e lucro/prejuízo calculavam cor preta;
+- as primeiras colunas de ações/operações eram Ticker/Data, não ID.
+
+O contrato de hover da listagem de corretoras recebeu um RED isolado adicional. Após corrigir o setup para o serviço entregar uma lista, foram observados **6 success e 1 failed**, especificamente pela ausência de `table-hover` e pela variável de hover padrão.
+
+Depois da implementação mínima, a rodada GREEN com as sete specs afetadas executou **49/49 success**.
+
+### Verificação da onda final
+
+```text
+npm.cmd test -- --watch=false --browsers=ChromeHeadless
+```
+
+Resultado final: **87/87 success**, exit code 0, sem falha, timeout ou navegador desconectado.
+
+```text
+npm.cmd run build
+```
+
+Resultado final: exit code 0. Bundle inicial de **628,89 kB**, excedendo o budget de 500,00 kB em **128,90 kB**. Permanecem os mesmos quatro avisos não bloqueantes de seletores Bootstrap ignorados pelo otimizador: `.form-floating>~label`, duas ocorrências de `.btn-group>+.btn` e `.btn-group-vertical>+.btn`.
+
+O commit desta onda final será criado com a mensagem `fix: resolve final portfolio review findings`, sem push; seu hash será informado no handoff.
