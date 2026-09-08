@@ -1,3 +1,4 @@
+import { CurrencyPipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -7,7 +8,7 @@ import { initialRequestState, RequestState, toErrorState, toLoadingState, toSucc
 import { AcaoService } from '../../services/acao.service';
 import { CorretoraService } from '../../services/corretora.service';
 
-@Component({ selector: 'app-acao-form', imports: [RouterLink, ReactiveFormsModule], templateUrl: './acao-form.component.html', styleUrl: './acao-form.component.css' })
+@Component({ selector: 'app-acao-form', imports: [CurrencyPipe, RouterLink, ReactiveFormsModule], templateUrl: './acao-form.component.html', styleUrl: './acao-form.component.css' })
 export class AcaoFormComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly acaoService = inject(AcaoService);

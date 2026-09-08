@@ -1,4 +1,4 @@
-<main class="page-shell">
+<div class="page-shell">
   <nav class="breadcrumb-nav" aria-label="Navegação estrutural">
     <a routerLink="/">Início</a>
     <span aria-hidden="true">/</span>
@@ -37,7 +37,7 @@
           >
           <p id="ticker-help" class="field-help">Use o código de negociação do ativo, como PETR4.</p>
           <div id="ticker-error" class="field-error" aria-live="polite">
-            @if (form.controls.ticker.touched && form.controls.ticker.invalid) {
+            @if (form.controls.ticker.touched && (form.controls.ticker.hasError('required') || form.controls.ticker.hasError('pattern'))) {
               <p>Informe um ticker válido.</p>
             }
             @if (form.controls.ticker.errors?.['server']; as messages) {
@@ -61,8 +61,11 @@
           </select>
           <p id="corretora-help" class="field-help">Escolha a corretora à qual esta ação ficará vinculada.</p>
           <div id="corretora-error" class="field-error" aria-live="polite">
-            @if (form.controls.corretoraId.touched && form.controls.corretoraId.invalid) {
+            @if (form.controls.corretoraId.touched && (form.controls.corretoraId.hasError('required') || form.controls.corretoraId.hasError('min'))) {
               <p>Selecione uma corretora.</p>
+            }
+            @if (form.controls.corretoraId.errors?.['server']; as messages) {
+              <p>{{ messages.join(' ') }}</p>
             }
           </div>
         </div>
@@ -90,7 +93,7 @@
       <h2 id="acao-cadastrada">Ação cadastrada</h2>
       <p><strong>Ticker:</strong> {{ a.ticker }}</p>
       <p><strong>Empresa:</strong> {{ a.nomeEmpresa || 'Empresa não informada' }}</p>
-      <p><strong>Cotação:</strong> {{ a.cotacaoAtual ?? 'indisponível' }} {{ a.moeda || '' }}</p>
+      <p><strong>Cotação:</strong> {{ a.cotacaoAtual == null ? 'indisponível' : (a.cotacaoAtual | currency:(a.moeda || 'BRL')) }}</p>
     </section>
   }
-</main>
+</div>

@@ -1,4 +1,4 @@
-<main class="page-shell">
+<div class="page-shell">
   <nav class="breadcrumb-nav" aria-label="Navegação estrutural">
     <a routerLink="/">Início</a>
     <span aria-hidden="true">/</span>
@@ -126,7 +126,7 @@
       <p><strong>Ticker:</strong> {{ op.acao.ticker }}</p>
       <p><strong>Quantidade:</strong> {{ op.quantidade }}</p>
       <p><strong>Total:</strong> {{ op.valorTotal | currency:(op.acao.moeda || 'BRL') }}</p>
-      <p><strong>Data:</strong> {{ op.dataOperacao | date:'short' }}</p>
+      <p><strong>Data:</strong> {{ op.dataOperacao | date:"dd/MM/yyyy 'às' HH:mm" }}</p>
     </section>
   }
-</main>
+</div>

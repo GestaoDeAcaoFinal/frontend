@@ -7,6 +7,44 @@ import { Corretora } from '../../core/api/api.models';
 import { CorretoraService } from '../../services/corretora.service';
 import { CorretoraFormComponent } from './corretora-form.component';
 
+function expectAccessibleFields(host: HTMLElement, fieldIds: string[]): void {
+  const ids = Array.from(host.querySelectorAll<HTMLElement>('[id]'), element => element.id);
+  expect(new Set(ids).size).withContext('IDs únicos').toBe(ids.length);
+
+  for (const fieldId of fieldIds) {
+    expect(host.querySelector(`#${fieldId}`)).withContext(`controle #${fieldId}`).not.toBeNull();
+    expect(host.querySelector(`label[for="${fieldId}"]`))
+      .withContext(`label de #${fieldId}`)
+      .not.toBeNull();
+  }
+
+  for (const control of host.querySelectorAll<HTMLElement>('[aria-describedby]')) {
+    const references = control.getAttribute('aria-describedby')?.split(/\s+/) ?? [];
+    expect(references.length).withContext(`descrições de #${control.id}`).toBeGreaterThan(0);
+    for (const reference of references) {
+      expect(host.querySelector(`#${reference}`))
+        .withContext(`#${control.id} descreve #${reference}`)
+        .not.toBeNull();
+    }
+  }
+}
+
+function relativeLuminance(color: string): number {
+  const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+  if (channels.length !== 3) throw new Error(`Cor CSS inválida: ${color}`);
+  const [red, green, blue] = channels.map(channel => {
+    const value = channel / 255;
+    return value <= .03928 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+  });
+  return .2126 * red + .7152 * green + .0722 * blue;
+}
+
+function contrastRatio(first: string, second: string): number {
+  const lighter = Math.max(relativeLuminance(first), relativeLuminance(second));
+  const darker = Math.min(relativeLuminance(first), relativeLuminance(second));
+  return (lighter + .05) / (darker + .05);
+}
+
 describe('CorretoraFormComponent', () => {
   const corretora: Corretora = {
     id: 1, cnpj: '12345678000190', razaoSocial: 'Corretora Teste SA',
@@ -37,10 +75,28 @@ describe('CorretoraFormComponent', () => {
   it('renderiza o fluxo em um painel financeiro acessível', () => {
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('main.page-shell')).not.toBeNull();
-    expect(host.querySelector('nav[aria-label="Navegação estrutural"]')).not.toBeNull();
+    const page = host.querySelector('.page-shell');
+    const breadcrumb = host.querySelector('nav[aria-label="Navegação estrutural"]');
+
+    expect(page?.tagName).toBe('DIV');
+    expect(host.querySelector('main')).toBeNull();
+    expect(breadcrumb).not.toBeNull();
+    expect(Array.from(breadcrumb?.querySelectorAll('a') ?? [], link => link.getAttribute('href')))
+      .toEqual(['/']);
+    expect(breadcrumb?.querySelector('[aria-current="page"]')?.textContent).toContain('Nova corretora');
     expect(host.querySelector('form.finance-form')).not.toBeNull();
     expect(host.querySelector('.form-actions')).not.toBeNull();
+    expect(host.querySelector('.form-actions a')?.getAttribute('href')).toBe('/corretoras');
+    expectAccessibleFields(host, ['cnpj', 'cep']);
+  });
+
+  it('mantém contraste AA no breadcrumb', () => {
+    fixture.detectChanges();
+    const breadcrumb = fixture.nativeElement.querySelector('.breadcrumb-nav') as HTMLElement;
+    const foreground = getComputedStyle(breadcrumb).color;
+    const background = getComputedStyle(document.body).backgroundColor;
+
+    expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
   });
 
   it('não envia CNPJ e CEP inválidos', () => {

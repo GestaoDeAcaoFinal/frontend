@@ -1,5 +1,7 @@
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { environment } from '../environments/environment';
@@ -20,6 +22,15 @@ describe('appConfig', () => {
   it('fornece a URL base configurada pelo ambiente', () => {
     expect(TestBed.inject(API_BASE_URL)).toBe(environment.apiBaseUrl);
     expect(environment.apiBaseUrl).toBe('http://localhost:8080');
+  });
+
+  it('configura o locale pt-BR para datas e valores monetários', () => {
+    const locale = TestBed.inject(LOCALE_ID);
+
+    expect(locale).toBe('pt-BR');
+    expect(new CurrencyPipe(locale).transform(1234.5, 'BRL')).toContain('1.234,50');
+    expect(new DatePipe(locale).transform('2026-09-04T10:00:00', 'shortDate'))
+      .toBe('04/09/2026');
   });
 
   it('registra o interceptor de erro sem adicionar autenticação', () => {

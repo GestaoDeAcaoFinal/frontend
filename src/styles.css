@@ -37,7 +37,7 @@ body { margin: 0; color: var(--color-navy-950); background: var(--color-canvas);
 :where(a, button, input, select):focus-visible { outline: 3px solid var(--color-emerald-600); outline-offset: 2px; }
 :where(button, .btn-finance-primary, .btn-finance-secondary):disabled { cursor: not-allowed; opacity: .6; transform: none; }
 
-.breadcrumb-nav { align-items: center; color: var(--color-slate-500); display: flex; flex-wrap: wrap; font-size: .875rem; gap: .5rem; margin-bottom: 1.5rem; }
+.breadcrumb-nav { align-items: center; color: var(--color-slate-700); display: flex; flex-wrap: wrap; font-size: .875rem; gap: .5rem; margin-bottom: 1.5rem; }
 .breadcrumb-nav a { color: var(--color-emerald-700); font-weight: 700; text-decoration-thickness: .08em; text-underline-offset: .2em; }
 .form-heading { margin-bottom: 1.5rem; max-width: 46rem; }
 .form-intro { color: var(--color-slate-700); margin: .75rem 0 0; }
