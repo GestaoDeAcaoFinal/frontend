@@ -1,23 +1,44 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideRouter } from '@angular/router';
+import { of, Subject, throwError } from 'rxjs';
+import { ApiError } from '../../core/api/api-error.interceptor';
+import { Acao, Corretora, OperacaoAcao } from '../../core/api/api.models';
+import { AcaoService } from '../../services/acao.service';
+import { OperacaoService } from '../../services/operacao.service';
 import { OperacaoListComponent } from './operacao-list.component';
 
+const corretora: Corretora = { id: 1, cnpj: '12345678000190', razaoSocial: 'XP', nomeFantasia: null, email: null, telefone: null, cep: '01001000', logradouro: null, numero: null, complemento: null, bairro: null, cidade: null, uf: null, situacaoCadastral: null, validadaNaCvm: true, dataCadastro: null };
+const acao: Acao = { id: 3, ticker: 'PETR4', nomeEmpresa: null, mercado: 'B3', moeda: 'BRL', cotacaoAtual: 35, dataHoraCotacao: null, corretoraRelacionada: corretora };
+const op: OperacaoAcao = { id: 4, quantidade: 2, precoUnitario: 35, precoMedio: null, lucroPrejuizo: null, dataOperacao: '2026-09-04T10:00:00', valorTotal: 70, tipoOperacao: 'COMPRA', acao };
+
 describe('OperacaoListComponent', () => {
-  let component: OperacaoListComponent;
-  let fixture: ComponentFixture<OperacaoListComponent>;
-
+  let fixture: ComponentFixture<OperacaoListComponent>; let component: OperacaoListComponent; let service: jasmine.SpyObj<OperacaoService>;
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [OperacaoListComponent]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(OperacaoListComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    service = jasmine.createSpyObj('OperacaoService', ['listar', 'listarCompras', 'listarVendas', 'listarHistorico', 'buscarPorId']); service.listar.and.returnValue(of([]));
+    const acaoService = jasmine.createSpyObj('AcaoService', ['listar']); acaoService.listar.and.returnValue(of([acao]));
+    await TestBed.configureTestingModule({ imports: [OperacaoListComponent], providers: [provideRouter([]), { provide: OperacaoService, useValue: service }, { provide: AcaoService, useValue: acaoService }] }).compileComponents();
+    fixture = TestBed.createComponent(OperacaoListComponent); component = fixture.componentInstance; fixture.detectChanges();
+  });
+  it('representa vazio e retry após erro', () => { expect(component.listState.data).toEqual([]); service.listar.and.returnValue(throwError(() => new ApiError(503, 'Erro', 'Falhou.'))); component.carregar(); expect(component.listState.error).not.toBeNull(); service.listar.and.returnValue(of([op])); component.carregar(); expect(component.listState.data).toEqual([op]); });
+  it('usa exatamente o endpoint do filtro selecionado', () => { service.listarCompras.and.returnValue(of([op])); component.aplicarFiltro('compras'); expect(service.listarCompras).toHaveBeenCalledTimes(1); service.listarVendas.and.returnValue(of([])); component.aplicarFiltro('vendas'); expect(service.listarVendas).toHaveBeenCalledTimes(1); service.listar.and.returnValue(of([op])); component.aplicarFiltro('todas'); expect(service.listar).toHaveBeenCalledTimes(2); });
+  it('mantém o filtro selecionado e oferece retry após erro', () => { service.listarVendas.and.returnValue(throwError(() => new ApiError(503, 'Indisponível', 'Tente novamente.'))); component.aplicarFiltro('vendas'); expect(component.filtroAtivo).toBe('vendas'); expect(component.listState.error?.status).toBe(503); });
+  it('consulta histórico da ação e mantém resultado vazio', () => { service.listarHistorico.and.returnValue(of([])); component.historicoForm.setValue({ acaoId: 3 }); component.buscarHistorico(); expect(service.listarHistorico).toHaveBeenCalledOnceWith(3); expect(component.listState.data).toEqual([]); });
+  it('mantém o histórico selecionado quando a ação não existe', () => { service.listarHistorico.and.returnValue(throwError(() => new ApiError(404, 'Não encontrada', 'Ação não encontrada.'))); component.historicoForm.setValue({ acaoId: 3 }); component.buscarHistorico(); expect(component.filtroAtivo).toBe('historico'); expect(component.listState.error?.status).toBe(404); });
+  it('valida e busca operação por id', () => { component.idForm.setValue({ id: 0 }); component.buscarPorId(); expect(service.buscarPorId).not.toHaveBeenCalled(); service.buscarPorId.and.returnValue(of(op)); component.idForm.setValue({ id: 4 }); component.buscarPorId(); expect(component.detailState.data).toEqual(op); });
+  it('apresenta 404 ao buscar uma operação inexistente', () => { service.buscarPorId.and.returnValue(throwError(() => new ApiError(404, 'Não encontrada', 'Operação não encontrada.'))); component.idForm.setValue({ id: 99 }); component.buscarPorId(); expect(component.detailState.error?.status).toBe(404); });
+  it('torna o loading observável e formata valores financeiros nulos com marcador', () => {
+    const pending = new Subject<OperacaoAcao[]>(); service.listarCompras.and.returnValue(pending); component.aplicarFiltro('compras'); fixture.detectChanges();
+    expect(component.listState.loading).toBeTrue(); expect(fixture.nativeElement.textContent).toContain('Carregando operações');
+    pending.next([op]); pending.complete(); fixture.detectChanges(); const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Não informado'); expect(text).not.toContain('NaN'); expect(text).not.toContain('Invalid Date');
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('expõe filtros textuais e tabela financeira', () => {
+    component.listState.data = [op];
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('[aria-label="Filtros de operações"]')).not.toBeNull();
+    expect(host.querySelector('table.finance-table')).not.toBeNull();
+    expect(host.querySelector('.trade-badge')?.textContent).toContain('COMPRA');
   });
 });
