@@ -75,10 +75,51 @@ describe('AppComponent', () => {
     expect(host.querySelector('main.app-main router-outlet')).not.toBeNull();
   });
 
-  it('remove transição e movimento quando a redução de movimento está ativa', () => {
+  it('empilha barras e ações no breakpoint móvel', () => {
+    const mediaRules = Array.from(document.styleSheets)
+      .flatMap(sheet => Array.from(sheet.cssRules))
+      .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule);
+    const mobileRule = mediaRules.find(rule => rule.conditionText === '(max-width: 760px)');
+
+    expect(mobileRule).toBeDefined();
+    if (!mobileRule) return;
+
+    const originalMedia = mobileRule.media.mediaText;
+    mobileRule.media.mediaText = 'all';
+
+    const pageShell = document.createElement('div');
+    pageShell.className = 'page-shell';
+    const listToolbar = document.createElement('div');
+    listToolbar.className = 'list-toolbar';
+    const primaryAction = document.createElement('a');
+    primaryAction.className = 'btn-finance-primary';
+    listToolbar.appendChild(primaryAction);
+    const formActions = document.createElement('div');
+    formActions.className = 'form-actions';
+    const formAction = document.createElement('button');
+    formActions.appendChild(formAction);
+    pageShell.append(listToolbar, formActions);
+    document.body.appendChild(pageShell);
+
+    try {
+      expect(pageShell.getBoundingClientRect().width)
+        .toBeCloseTo(Math.min(document.documentElement.clientWidth - 16, 1180), 0);
+      expect(getComputedStyle(pageShell).paddingTop).toBe('20px');
+      expect(getComputedStyle(listToolbar).flexDirection).toBe('column');
+      expect(getComputedStyle(listToolbar).alignItems).toBe('stretch');
+      expect(getComputedStyle(primaryAction).width).toBe(getComputedStyle(listToolbar).width);
+      expect(getComputedStyle(formActions).flexDirection).toBe('column');
+      expect(getComputedStyle(formActions).alignItems).toBe('stretch');
+      expect(getComputedStyle(formAction).width).toBe(getComputedStyle(formActions).width);
+    } finally {
+      pageShell.remove();
+      mobileRule.media.mediaText = originalMedia;
+    }
+  });
+
+  it('reduz transições, animações e rolagem quando a preferência está ativa', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    const action = fixture.nativeElement.querySelector('.btn-finance-primary') as HTMLElement;
     const mediaRules = Array.from(document.styleSheets)
       .flatMap(sheet => Array.from(sheet.cssRules))
       .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule);
@@ -92,13 +133,19 @@ describe('AppComponent', () => {
     const originalMedia = reducedMotionRule.media.mediaText;
     reducedMotionRule.media.mediaText = 'all';
 
+    const probe = document.createElement('div');
+    probe.style.setProperty('animation-duration', '2s');
+    probe.style.setProperty('scroll-behavior', 'smooth');
+    probe.style.setProperty('transition-duration', '2s');
+    document.body.appendChild(probe);
+
     try {
-      expect(getComputedStyle(action).transitionDuration).toBe('0s');
-      const hoverRule = Array.from(reducedMotionRule.cssRules)
-        .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
-        .find(rule => rule.selectorText === '.btn-finance-primary:hover');
-      expect(hoverRule?.style.transform).toBe('none');
+      const style = getComputedStyle(probe);
+      expect(style.scrollBehavior).toBe('auto');
+      expect(style.transitionDuration).toBe('1e-05s');
+      expect(style.animationDuration).toBe('1e-05s');
     } finally {
+      probe.remove();
       reducedMotionRule.media.mediaText = originalMedia;
     }
   });
