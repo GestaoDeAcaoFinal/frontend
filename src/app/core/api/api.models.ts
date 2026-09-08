@@ -52,6 +52,24 @@ export interface OperacaoAcao {
   acao: Acao;
 }
 
+export interface PosicaoCarteira {
+  acaoId: number;
+  ticker: string;
+  quantidadeAtual: number;
+  precoMedio: number;
+  custoTotal: number;
+  cotacaoAtual: number;
+  valorAtual: number;
+}
+
+export interface ResumoCarteira {
+  posicoes: PosicaoCarteira[];
+  quantidadeTotal: number;
+  precoMedioCarteira: number;
+  custoTotalCarteira: number;
+  valorAtualCarteira: number;
+}
+
 export type FieldErrors = Record<string, string[]>;
 
 export interface ProblemDetail {

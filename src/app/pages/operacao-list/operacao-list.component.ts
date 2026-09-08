@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 
 import { ApiError } from '../../core/api/api-error.interceptor';
-import { Acao, OperacaoAcao } from '../../core/api/api.models';
+import { Acao, OperacaoAcao, ResumoCarteira } from '../../core/api/api.models';
 import {
   initialRequestState,
   RequestState,
@@ -40,11 +40,21 @@ export class OperacaoListComponent implements OnInit {
   listState: RequestState<OperacaoAcao[]> = initialRequestState<OperacaoAcao[]>();
   detailState: RequestState<OperacaoAcao> = initialRequestState<OperacaoAcao>();
   acoesState: RequestState<Acao[]> = initialRequestState<Acao[]>();
+  carteiraState: RequestState<ResumoCarteira> = initialRequestState<ResumoCarteira>();
   private listRequestGeneration = 0;
 
   ngOnInit(): void {
     this.carregarAcoes();
+    this.carregarCarteira();
     this.carregar();
+  }
+
+  carregarCarteira(): void {
+    this.carteiraState = toLoadingState(this.carteiraState);
+    this.operacaoService.resumirCarteira().subscribe({
+      next: data => this.carteiraState = toSuccessState(this.carteiraState, data),
+      error: (error: ApiError) => this.carteiraState = toErrorState(this.carteiraState, error)
+    });
   }
 
   carregar(): void {

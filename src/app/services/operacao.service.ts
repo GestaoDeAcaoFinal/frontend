@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { API_BASE_URL } from '../core/api/api-base-url.token';
-import { OperacaoAcao } from '../core/api/api.models';
+import { OperacaoAcao, ResumoCarteira } from '../core/api/api.models';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +20,10 @@ export class OperacaoService {
 
   listar(): Observable<OperacaoAcao[]> {
     return this.http.get<OperacaoAcao[]>(this.apiUrl);
+  }
+
+  resumirCarteira(): Observable<ResumoCarteira> {
+    return this.http.get<ResumoCarteira>(`${this.apiUrl}/carteira`);
   }
 
   comprar(acaoId: number, quantidade: number): Observable<OperacaoAcao> {

@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { API_BASE_URL } from '../core/api/api-base-url.token';
 import { ApiError, apiErrorInterceptor } from '../core/api/api-error.interceptor';
-import { Acao, Corretora, OperacaoAcao } from '../core/api/api.models';
+import { Acao, Corretora, OperacaoAcao, ResumoCarteira } from '../core/api/api.models';
 import { OperacaoService } from './operacao.service';
 
 describe('OperacaoService', () => {
@@ -50,6 +50,18 @@ describe('OperacaoService', () => {
   });
 
   afterEach(() => httpTesting.verify());
+
+  it('consulta o resumo atual da carteira', async () => {
+    const resumo: ResumoCarteira = {
+      posicoes: [], quantidadeTotal: 0, precoMedioCarteira: 0,
+      custoTotalCarteira: 0, valorAtualCarteira: 0
+    };
+    const resultPromise = firstValueFrom(service.resumirCarteira());
+    const req = httpTesting.expectOne(`${apiBaseUrl}/operacoes/carteira`);
+    expect(req.request.method).toBe('GET');
+    req.flush(resumo);
+    expect(await resultPromise).toEqual(resumo);
+  });
 
   it('lista todas as operações', async () => {
     const resultPromise = firstValueFrom(service.listar());

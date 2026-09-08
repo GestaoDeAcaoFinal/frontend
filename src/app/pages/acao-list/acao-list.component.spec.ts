@@ -9,6 +9,31 @@ import { AcaoListComponent } from './acao-list.component';
 const corretora: Corretora = { id: 2, cnpj: '12345678000190', razaoSocial: 'XP', nomeFantasia: null, email: null, telefone: null, cep: '01001000', logradouro: null, numero: null, complemento: null, bairro: null, cidade: 'São Paulo', uf: 'SP', situacaoCadastral: null, validadaNaCvm: true, dataCadastro: null };
 const acao: Acao = { id: 1, ticker: 'PETR4', nomeEmpresa: 'Petrobras', mercado: 'B3', moeda: 'BRL', cotacaoAtual: 35, dataHoraCotacao: null, corretoraRelacionada: corretora };
 
+function relativeLuminance(color: string): number {
+  const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+  if (channels.length !== 3) throw new Error(`Cor CSS inválida: ${color}`);
+  const [red, green, blue] = channels.map(channel => {
+    const value = channel / 255;
+    return value <= .03928 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+  });
+  return .2126 * red + .7152 * green + .0722 * blue;
+}
+
+function normalizeCssColor(color: string): string {
+  const probe = document.createElement('span');
+  probe.style.color = color;
+  document.body.appendChild(probe);
+  const normalized = getComputedStyle(probe).color;
+  probe.remove();
+  return normalized;
+}
+
+function contrastRatio(first: string, second: string): number {
+  const lighter = Math.max(relativeLuminance(first), relativeLuminance(second));
+  const darker = Math.min(relativeLuminance(first), relativeLuminance(second));
+  return (lighter + .05) / (darker + .05);
+}
+
 describe('AcaoListComponent', () => {
   let fixture: ComponentFixture<AcaoListComponent>; let component: AcaoListComponent; let service: jasmine.SpyObj<AcaoService>;
   beforeEach(async () => {
@@ -67,5 +92,18 @@ describe('AcaoListComponent', () => {
     const idCell = table.querySelector('tbody td') as HTMLTableCellElement;
     expect(idCell.classList).toContain('numeric');
     expect(idCell.textContent?.trim()).toBe('1');
+  });
+
+  it('mantém contraste AA do texto secundário sobre o hover da tabela', () => {
+    component.listState.data = [acao];
+    fixture.detectChanges();
+    const table = fixture.nativeElement.querySelector('table.finance-table') as HTMLTableElement;
+    const secondary = table.querySelector('.cell-secondary') as HTMLElement;
+    const hoverBackground = normalizeCssColor(
+      getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()
+    );
+
+    expect(contrastRatio(getComputedStyle(secondary).color, hoverBackground))
+      .toBeGreaterThanOrEqual(4.5);
   });
 });

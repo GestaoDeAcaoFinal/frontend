@@ -123,7 +123,7 @@ body { margin: 0; color: var(--color-navy-950); background: var(--color-canvas);
 .numeric { text-align: right; white-space: nowrap; }
 .monospace-data { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cell-primary { color: var(--color-navy-950); display: block; }
-.cell-secondary { color: var(--color-slate-500); display: block; font-size: .875rem; }
+.cell-secondary { color: var(--color-slate-700); display: block; font-size: .875rem; }
 .ticker-badge,
 .trade-badge {
   align-items: center;
