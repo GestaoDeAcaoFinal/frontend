@@ -12,10 +12,10 @@ const acao: Acao = { id: 3, ticker: 'PETR4', nomeEmpresa: null, mercado: 'B3', m
 const op: OperacaoAcao = { id: 4, quantidade: 2, precoUnitario: 35, precoMedio: null, lucroPrejuizo: null, dataOperacao: '2026-09-04T10:00:00', valorTotal: 70, tipoOperacao: 'COMPRA', acao };
 
 describe('OperacaoListComponent', () => {
-  let fixture: ComponentFixture<OperacaoListComponent>; let component: OperacaoListComponent; let service: jasmine.SpyObj<OperacaoService>;
+  let fixture: ComponentFixture<OperacaoListComponent>; let component: OperacaoListComponent; let service: jasmine.SpyObj<OperacaoService>; let acaoService: jasmine.SpyObj<AcaoService>;
   beforeEach(async () => {
     service = jasmine.createSpyObj('OperacaoService', ['listar', 'listarCompras', 'listarVendas', 'listarHistorico', 'buscarPorId']); service.listar.and.returnValue(of([]));
-    const acaoService = jasmine.createSpyObj('AcaoService', ['listar']); acaoService.listar.and.returnValue(of([acao]));
+    acaoService = jasmine.createSpyObj('AcaoService', ['listar']); acaoService.listar.and.returnValue(of([acao]));
     await TestBed.configureTestingModule({ imports: [OperacaoListComponent], providers: [provideRouter([]), { provide: OperacaoService, useValue: service }, { provide: AcaoService, useValue: acaoService }] }).compileComponents();
     fixture = TestBed.createComponent(OperacaoListComponent); component = fixture.componentInstance; fixture.detectChanges();
   });
@@ -26,6 +26,50 @@ describe('OperacaoListComponent', () => {
   it('mantém o histórico selecionado quando a ação não existe', () => { service.listarHistorico.and.returnValue(throwError(() => new ApiError(404, 'Não encontrada', 'Ação não encontrada.'))); component.historicoForm.setValue({ acaoId: 3 }); component.buscarHistorico(); expect(component.filtroAtivo).toBe('historico'); expect(component.listState.error?.status).toBe(404); });
   it('valida e busca operação por id', () => { component.idForm.setValue({ id: 0 }); component.buscarPorId(); expect(service.buscarPorId).not.toHaveBeenCalled(); service.buscarPorId.and.returnValue(of(op)); component.idForm.setValue({ id: 4 }); component.buscarPorId(); expect(component.detailState.data).toEqual(op); });
   it('apresenta 404 ao buscar uma operação inexistente', () => { service.buscarPorId.and.returnValue(throwError(() => new ApiError(404, 'Não encontrada', 'Operação não encontrada.'))); component.idForm.setValue({ id: 99 }); component.buscarPorId(); expect(component.detailState.error?.status).toBe(404); });
+  it('oculta o detalhe anterior quando uma nova consulta falha', () => {
+    service.buscarPorId.and.returnValues(
+      of(op),
+      throwError(() => new ApiError(404, 'Não encontrada', 'Operação não encontrada.'))
+    );
+
+    component.idForm.setValue({ id: 4 }); component.buscarPorId(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.search-result')).not.toBeNull();
+
+    component.idForm.setValue({ id: 99 }); component.buscarPorId(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Operação não encontrada.');
+    expect(fixture.nativeElement.querySelector('.search-result')).toBeNull();
+  });
+  it('ignora uma resposta antiga após a seleção de outro filtro', () => {
+    const compras = new Subject<OperacaoAcao[]>();
+    const vendas = new Subject<OperacaoAcao[]>();
+    const venda = { ...op, id: 5, tipoOperacao: 'VENDA' as const };
+    service.listarCompras.and.returnValue(compras);
+    service.listarVendas.and.returnValue(vendas);
+
+    component.aplicarFiltro('compras');
+    component.aplicarFiltro('vendas');
+    vendas.next([venda]);
+    compras.next([op]);
+
+    expect(component.filtroAtivo).toBe('vendas');
+    expect(component.listState.data).toEqual([venda]);
+  });
+  it('permite tentar novamente o carregamento de ações do filtro histórico', () => {
+    component.acoesState = {
+      loading: false,
+      data: null,
+      error: new ApiError(503, 'Indisponível', 'Ações indisponíveis.'),
+      successMessage: null
+    };
+    acaoService.listar.and.returnValue(of([acao]));
+    fixture.detectChanges();
+    const retry = fixture.nativeElement.querySelector('.acoes-retry') as HTMLButtonElement | null;
+    expect(retry).not.toBeNull();
+
+    retry?.click();
+    expect(acaoService.listar).toHaveBeenCalledTimes(2);
+    expect(component.acoesState.data).toEqual([acao]);
+  });
   it('torna o loading observável e formata valores financeiros nulos com marcador', () => {
     const pending = new Subject<OperacaoAcao[]>(); service.listarCompras.and.returnValue(pending); component.aplicarFiltro('compras'); fixture.detectChanges();
     expect(component.listState.loading).toBeTrue(); expect(fixture.nativeElement.textContent).toContain('Carregando operações');
@@ -38,6 +82,7 @@ describe('OperacaoListComponent', () => {
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('[aria-label="Filtros de operações"]')).not.toBeNull();
+    expect(host.querySelector('[role="group"][aria-label="Filtros de operações"]')).not.toBeNull();
     expect(host.querySelector('table.finance-table')).not.toBeNull();
     expect(host.querySelector('.trade-badge')?.textContent).toContain('COMPRA');
   });

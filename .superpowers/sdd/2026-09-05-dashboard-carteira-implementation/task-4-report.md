@@ -50,9 +50,27 @@ Resultado: **77/77 success**, exit code 0.
 
 `git diff --check` não encontrou erros de whitespace; o Git informou apenas a normalização configurada de LF para CRLF no Windows.
 
+## Rodada de revisão 1
+
+Os findings do review foram cobertos primeiro por testes de regressão. O RED focado executou **24 specs: 17 success e 7 failed**, reproduzindo:
+
+- resultado antigo exibido junto com erro novo nas consultas diretas das três listas;
+- resposta antiga de filtro sobrescrevendo a seleção mais recente em operações;
+- ausência de retry no carregamento de ações do filtro histórico;
+- fallbacks ausentes para razão social/localidade nullable;
+- grupo de filtros sem papel semântico acessível.
+
+A implementação tornou loading/erro/dado mutuamente exclusivos nos três resultados diretos, adicionou generation guard à listagem de operações, tornou `carregarAcoes()` um handler recuperável, adicionou retry no painel, fallbacks textuais e `role="group"` com nome acessível.
+
+Validações após a correção:
+
+- três specs focadas: **24/24 success**;
+- suíte completa: **83/83 success**, exit code 0.
+
 ## Commits
 
 - `7d6799c` — `chore: integrate frontend listing prerequisites` — somente os três `list.component.ts` funcionais preexistentes.
-- `feat: style portfolio listings` — templates, specs, estilos e este relatório (commit da Task 4).
+- `37c6d27` — `feat: style portfolio listings` — templates, specs, estilos e este relatório (commit da Task 4).
+- `fix: address portfolio listings review feedback` — regressões e correções da rodada de review 1.
 
 Nenhum push foi realizado. Ferramentas, logs, `openspec/`, `graphify-out/` e demais arquivos fora do escopo não foram staged.

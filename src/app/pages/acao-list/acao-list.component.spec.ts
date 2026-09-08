@@ -34,6 +34,25 @@ describe('AcaoListComponent', () => {
     expect(component.listState.data?.[0].cotacaoAtual).toBe(36); expect(component.updateErrors[1].status).toBe(502);
   });
 
+  it('oculta o resultado anterior quando uma nova consulta falha', () => {
+    service.buscarPorId.and.returnValues(
+      of(acao),
+      throwError(() => new ApiError(404, 'Não encontrada', 'Ação não encontrada.'))
+    );
+
+    component.searchForm.setValue({ criterio: 'id', valor: '1' });
+    component.buscar();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.search-result')).not.toBeNull();
+
+    component.searchForm.setValue({ criterio: 'id', valor: '2' });
+    component.buscar();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Ação não encontrada.');
+    expect(fixture.nativeElement.querySelector('.search-result')).toBeNull();
+  });
+
   it('organiza consulta e resultados como uma listagem financeira', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('div.page-shell')).not.toBeNull();

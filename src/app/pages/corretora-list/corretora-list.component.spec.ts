@@ -87,6 +87,40 @@ describe('CorretoraListComponent', () => {
     expect(component.searchState.data).toEqual(corretora);
   });
 
+  it('oculta o resultado anterior quando uma nova consulta falha', () => {
+    service.buscarPorId.and.returnValues(
+      of(corretora),
+      throwError(() => new ApiError(404, 'Não encontrada', 'Corretora não encontrada.'))
+    );
+    fixture.detectChanges();
+
+    component.searchForm.setValue({ criterio: 'id', valor: '1' });
+    component.buscar();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.search-result')).not.toBeNull();
+
+    component.searchForm.setValue({ criterio: 'id', valor: '2' });
+    component.buscar();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Corretora não encontrada.');
+    expect(fixture.nativeElement.querySelector('.search-result')).toBeNull();
+  });
+
+  it('apresenta fallbacks para razão social e localidade ausentes', () => {
+    fixture.detectChanges();
+    component.listState.data = [{
+      ...corretora,
+      razaoSocial: null as unknown as string,
+      cidade: null,
+      uf: null
+    }];
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Razão social não informada');
+    expect(fixture.nativeElement.textContent).toContain('Localidade não informada');
+  });
+
   it('organiza consulta e resultados como uma listagem financeira', () => {
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;

@@ -41,11 +41,13 @@
         </button>
       </div>
     </form>
-    @if (searchState.error) {
+    @if (searchState.loading) {
+      <div class="status-panel mt-3" role="status" aria-live="polite">Consultando ação…</div>
+    } @else if (searchState.error) {
       <div class="status-panel status-panel--error mt-3" role="alert">{{ searchState.error.message }}</div>
-    }
-    @if (searchState.data; as a) {
-      <div class="search-result search-result--action mt-3" role="status">
+    } @else {
+      @if (searchState.data; as a) {
+        <div class="search-result search-result--action mt-3" role="status">
         <div>
           <span class="ticker-badge">{{ a.ticker }}</span>
           <strong>{{ a.nomeEmpresa || 'Empresa não informada' }}</strong>
@@ -62,7 +64,8 @@
         @if (updateErrors[a.id]) {
           <div class="field-error" role="alert">{{ updateErrors[a.id].message }}</div>
         }
-      </div>
+        </div>
+      }
     }
   </section>
 

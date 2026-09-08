@@ -20,7 +20,7 @@
       <h2 id="filtros-operacoes">Filtrar operações</h2>
       <p>Selecione um tipo de movimentação ou consulte o histórico de um ativo.</p>
     </div>
-    <div class="filter-actions" aria-label="Filtros de operações">
+    <div class="filter-actions" role="group" aria-label="Filtros de operações">
       <button type="button" class="filter-chip" [class.active]="filtroAtivo === 'todas'" [attr.aria-pressed]="filtroAtivo === 'todas'" (click)="aplicarFiltro('todas')">Todas</button>
       <button type="button" class="filter-chip" [class.active]="filtroAtivo === 'compras'" [attr.aria-pressed]="filtroAtivo === 'compras'" (click)="aplicarFiltro('compras')">Compras</button>
       <button type="button" class="filter-chip" [class.active]="filtroAtivo === 'vendas'" [attr.aria-pressed]="filtroAtivo === 'vendas'" (click)="aplicarFiltro('vendas')">Vendas</button>
@@ -38,7 +38,10 @@
           <div class="field-error" role="alert">Selecione uma ação válida.</div>
         }
         @if (acoesState.error) {
-          <div class="field-error" role="alert">{{ acoesState.error.message }}</div>
+          <div class="field-error" role="alert">
+            {{ acoesState.error.message }}
+            <button type="button" class="btn-finance-secondary acoes-retry" (click)="carregarAcoes()">Tentar novamente</button>
+          </div>
         }
       </div>
       <div class="col-md-4">
@@ -66,11 +69,13 @@
         </button>
       </div>
     </form>
-    @if (detailState.error) {
+    @if (detailState.loading) {
+      <div class="status-panel mt-3" role="status" aria-live="polite">Consultando operação…</div>
+    } @else if (detailState.error) {
       <div class="status-panel status-panel--error mt-3" role="alert">{{ detailState.error.message }}</div>
-    }
-    @if (detailState.data; as operacao) {
-      <div class="search-result mt-3" role="status">
+    } @else {
+      @if (detailState.data; as operacao) {
+        <div class="search-result mt-3" role="status">
         <span
           class="trade-badge"
           [class.trade-badge--buy]="operacao.tipoOperacao === 'COMPRA'"
@@ -80,7 +85,8 @@
         <span class="ticker-badge">{{ operacao.acao.ticker }}</span>
         <strong class="numeric">{{ operacao.quantidade }} unidade(s)</strong>
         <span class="numeric">Total {{ operacao.valorTotal | currency:(operacao.acao.moeda || 'BRL') }}</span>
-      </div>
+        </div>
+      }
     }
   </section>
 

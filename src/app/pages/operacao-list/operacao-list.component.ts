@@ -40,6 +40,7 @@ export class OperacaoListComponent implements OnInit {
   listState: RequestState<OperacaoAcao[]> = initialRequestState<OperacaoAcao[]>();
   detailState: RequestState<OperacaoAcao> = initialRequestState<OperacaoAcao>();
   acoesState: RequestState<Acao[]> = initialRequestState<Acao[]>();
+  private listRequestGeneration = 0;
 
   ngOnInit(): void {
     this.carregarAcoes();
@@ -84,7 +85,7 @@ export class OperacaoListComponent implements OnInit {
     });
   }
 
-  private carregarAcoes(): void {
+  carregarAcoes(): void {
     this.acoesState = toLoadingState(this.acoesState);
     this.acaoService.listar().subscribe({
       next: data => this.acoesState = toSuccessState(this.acoesState, data),
@@ -101,10 +102,19 @@ export class OperacaoListComponent implements OnInit {
   }
 
   private loadList(request$: Observable<OperacaoAcao[]>): void {
+    const requestGeneration = ++this.listRequestGeneration;
     this.listState = toLoadingState(this.listState);
     request$.subscribe({
-      next: data => this.listState = toSuccessState(this.listState, data),
-      error: (error: ApiError) => this.listState = toErrorState(this.listState, error)
+      next: data => {
+        if (requestGeneration === this.listRequestGeneration) {
+          this.listState = toSuccessState(this.listState, data);
+        }
+      },
+      error: (error: ApiError) => {
+        if (requestGeneration === this.listRequestGeneration) {
+          this.listState = toErrorState(this.listState, error);
+        }
+      }
     });
   }
 }
