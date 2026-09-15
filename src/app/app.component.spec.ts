@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { routes } from './app.routes';
+import { OperacaoService } from './services/operacao.service';
 
 type Rgb = [number, number, number];
 
@@ -39,9 +41,22 @@ function contrastRatio(first: Rgb, second: Rgb): number {
 
 describe('AppComponent', () => {
   beforeEach(async () => {
+    const operacaoService = jasmine.createSpyObj<OperacaoService>('OperacaoService', ['resumirCarteira', 'listar']);
+    operacaoService.resumirCarteira.and.returnValue(of({
+      posicoes: [],
+      quantidadeTotal: 0,
+      precoMedioCarteira: 0,
+      custoTotalCarteira: 0,
+      valorAtualCarteira: 0
+    }));
+    operacaoService.listar.and.returnValue(of([]));
+
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter(routes)]
+      providers: [
+        provideRouter(routes),
+        { provide: OperacaoService, useValue: operacaoService }
+      ]
     }).compileComponents();
   });
 

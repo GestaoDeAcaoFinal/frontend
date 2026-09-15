@@ -61,25 +61,40 @@ describe('OperacaoFormComponent', () => {
     expect(host.querySelector('.form-actions')).not.toBeNull();
     expect(host.querySelector('.form-actions a')?.getAttribute('href')).toBe('/');
 
+    expectAccessibleFields(host, ['acao', 'quantidade', 'tipo-compra', 'tipo-venda', 'preco-compra']);
     component.form.controls.tipoOperacao.setValue('VENDA');
     fixture.detectChanges();
     expectAccessibleFields(host, ['acao', 'quantidade', 'tipo-compra', 'tipo-venda', 'preco']);
   });
   it('carrega ações e rejeita quantidade não inteira positiva', () => {
-    expect(component.acoesState.data).toEqual([acao]); component.form.setValue({ acaoId: 3, quantidade: 1.5, tipoOperacao: 'COMPRA', precoVenda: null }); component.salvar(); expect(service.comprar).not.toHaveBeenCalled();
+    expect(component.acoesState.data).toEqual([acao]); component.form.setValue({ acaoId: 3, quantidade: 1.5, tipoOperacao: 'COMPRA', precoCompra: 35, precoVenda: null }); component.salvar(); expect(service.comprar).not.toHaveBeenCalled();
   });
-  it('compra sem exigir preço e bloqueia submissão duplicada', () => {
-    const pending = new Subject<OperacaoAcao>(); service.comprar.and.returnValue(pending); component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoVenda: null }); component.salvar(); component.salvar();
-    expect(service.comprar).toHaveBeenCalledOnceWith(3, 2); pending.next(operacao); expect(component.state.data).toEqual(operacao);
+  it('compra com preço preenchido e bloqueia submissão duplicada', () => {
+    const pending = new Subject<OperacaoAcao>(); service.comprar.and.returnValue(pending); component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoCompra: 35, precoVenda: null }); component.salvar(); component.salvar();
+    expect(service.comprar).toHaveBeenCalledOnceWith(3, 2, 35); pending.next(operacao); expect(component.state.data).toEqual(operacao);
+  });
+  it('preenche o preço de compra com a cotação e permite editar antes de salvar', () => {
+    component.form.controls.acaoId.setValue(3);
+    const precoCompra = component.form.get('precoCompra');
+
+    expect(precoCompra).not.toBeNull();
+    expect(precoCompra?.value).toBe(35);
+
+    precoCompra?.setValue(30);
+    component.form.controls.quantidade.setValue(1);
+    service.comprar.and.returnValue(of({ ...operacao, quantidade: 1, precoUnitario: 30, precoMedio: 30, valorTotal: 30 }));
+    component.salvar();
+
+    expect(service.comprar).toHaveBeenCalledOnceWith(3, 1, 30);
   });
   it('exige preço positivo para venda e preserva valores no conflito', () => {
-    component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'VENDA', precoVenda: null }); component.salvar(); expect(service.vender).not.toHaveBeenCalled();
+    component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'VENDA', precoCompra: null, precoVenda: null }); component.salvar(); expect(service.vender).not.toHaveBeenCalled();
     service.vender.and.returnValue(throwError(() => new ApiError(409, 'Conflito', 'Saldo insuficiente.'))); component.form.controls.precoVenda.setValue(40); component.salvar();
     expect(service.vender).toHaveBeenCalledOnceWith(3, 2, 40); expect(component.form.getRawValue().precoVenda).toBe(40); expect(component.state.error?.status).toBe(409);
   });
   it('formata total e data da operação no locale pt-BR', () => {
     service.comprar.and.returnValue(of(operacao));
-    component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoVenda: null });
+    component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoCompra: 35, precoVenda: null });
 
     component.salvar();
     fixture.detectChanges();
@@ -93,7 +108,7 @@ describe('OperacaoFormComponent', () => {
   it('oculta a operação anterior durante uma nova submissão que termina em erro', () => {
     const secondRequest = new Subject<OperacaoAcao>();
     service.comprar.and.returnValues(of(operacao), secondRequest);
-    component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoVenda: null });
+    component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoCompra: 35, precoVenda: null });
 
     component.salvar();
     fixture.detectChanges();

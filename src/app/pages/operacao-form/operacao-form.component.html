@@ -80,6 +80,27 @@
           <p id="tipo-operacao-help" class="field-help">Escolha se os ativos entram ou saem da carteira.</p>
         </fieldset>
 
+        @if (form.controls.tipoOperacao.value === 'COMPRA') {
+          <div class="field-group">
+            <label for="preco-compra" class="form-label">Preço de compra</label>
+            <input
+              id="preco-compra"
+              type="number"
+              min="0.01"
+              step="0.01"
+              class="form-control"
+              formControlName="precoCompra"
+              aria-describedby="preco-compra-help preco-compra-error"
+            >
+            <p id="preco-compra-help" class="field-help">Cotação atual preenchida automaticamente; você pode alterá-la antes de salvar.</p>
+            <div id="preco-compra-error" class="field-error" aria-live="polite">
+              @if (form.controls.precoCompra.touched && form.controls.precoCompra.invalid) {
+                <p>Informe um preço positivo.</p>
+              }
+            </div>
+          </div>
+        }
+
         @if (form.controls.tipoOperacao.value === 'VENDA') {
           <div class="field-group">
             <label for="preco" class="form-label">Preço de venda</label>

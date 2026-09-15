@@ -1,7 +1,15 @@
+import { registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { LOCALE_ID } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
+import { OperacaoAcao, ResumoCarteira } from '../../core/api/api.models';
+import { OperacaoService } from '../../services/operacao.service';
 import { HomeComponent } from './home.component';
+
+registerLocaleData(localePt, 'pt-BR');
 
 type Rgb = [number, number, number];
 
@@ -31,11 +39,74 @@ function contrastRatio(first: Rgb, second: Rgb): number {
 describe('HomeComponent', () => {
   let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
+  let operacaoService: jasmine.SpyObj<OperacaoService>;
+
+  const carteira: ResumoCarteira = {
+    quantidadeTotal: 12,
+    precoMedioCarteira: 30,
+    custoTotalCarteira: 360,
+    valorAtualCarteira: 420,
+    posicoes: [
+      { acaoId: 1, ticker: 'PETR4', quantidadeAtual: 8, precoMedio: 25, custoTotal: 200, cotacaoAtual: 35, valorAtual: 280 },
+      { acaoId: 2, ticker: 'VALE3', quantidadeAtual: 4, precoMedio: 40, custoTotal: 160, cotacaoAtual: 35, valorAtual: 140 }
+    ]
+  };
+
+  const operacoes: OperacaoAcao[] = [
+    {
+      id: 2,
+      quantidade: 4,
+      precoUnitario: 40,
+      precoMedio: 40,
+      lucroPrejuizo: null,
+      dataOperacao: '2026-09-10T10:00:00',
+      valorTotal: 160,
+      tipoOperacao: 'COMPRA',
+      acao: {
+        id: 2,
+        ticker: 'VALE3',
+        nomeEmpresa: 'Vale',
+        mercado: 'BR',
+        moeda: 'BRL',
+        cotacaoAtual: 35,
+        dataHoraCotacao: null,
+        corretoraRelacionada: {} as OperacaoAcao['acao']['corretoraRelacionada']
+      }
+    },
+    {
+      id: 1,
+      quantidade: 8,
+      precoUnitario: 25,
+      precoMedio: 25,
+      lucroPrejuizo: null,
+      dataOperacao: '2026-09-12T14:30:00',
+      valorTotal: 200,
+      tipoOperacao: 'COMPRA',
+      acao: {
+        id: 1,
+        ticker: 'PETR4',
+        nomeEmpresa: 'Petrobras',
+        mercado: 'BR',
+        moeda: 'BRL',
+        cotacaoAtual: 35,
+        dataHoraCotacao: null,
+        corretoraRelacionada: {} as OperacaoAcao['acao']['corretoraRelacionada']
+      }
+    }
+  ];
 
   beforeEach(async () => {
+    operacaoService = jasmine.createSpyObj<OperacaoService>('OperacaoService', ['resumirCarteira', 'listar']);
+    operacaoService.resumirCarteira.and.returnValue(of(carteira));
+    operacaoService.listar.and.returnValue(of(operacoes));
+
     await TestBed.configureTestingModule({
       imports: [HomeComponent],
-      providers: [provideRouter([])]
+      providers: [
+        provideRouter([]),
+        { provide: LOCALE_ID, useValue: 'pt-BR' },
+        { provide: OperacaoService, useValue: operacaoService }
+      ]
     })
     .compileComponents();
 
@@ -44,13 +115,26 @@ describe('HomeComponent', () => {
     fixture.detectChanges();
   });
 
-  it('apresenta a carteira sem inventar indicadores financeiros', () => {
+  it('apresenta indicadores financeiros obtidos da API', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('h1')?.textContent).toContain('Sua carteira, organizada');
-    expect(host.querySelectorAll('.domain-card').length).toBe(3);
-    expect(host.querySelectorAll('.quick-action').length).toBe(6);
-    expect(host.textContent).not.toContain('Rentabilidade');
-    expect(host.textContent).not.toContain('Patrimônio');
+    expect(host.querySelector('[data-testid="valor-atual"]')?.textContent).toContain('420,00');
+    expect(host.querySelector('[data-testid="custo-total"]')?.textContent).toContain('360,00');
+    expect(host.querySelector('[data-testid="resultado"]')?.textContent).toContain('60,00');
+    expect(host.querySelector('[data-testid="quantidade-total"]')?.textContent).toContain('12');
+  });
+
+  it('mostra a distribuição por ativo e as operações mais recentes', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const allocations = Array.from(host.querySelectorAll('.allocation-row'));
+    const recentOperations = Array.from(host.querySelectorAll('.recent-operation'));
+
+    expect(allocations.length).toBe(2);
+    expect(allocations[0].textContent).toContain('PETR4');
+    expect(allocations[0].querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')).toBe('66.67');
+    expect(recentOperations.length).toBe(2);
+    expect(recentOperations[0].textContent).toContain('PETR4');
+    expect(recentOperations[1].textContent).toContain('VALE3');
   });
 
   it('expõe navegação para os seis fluxos principais', () => {

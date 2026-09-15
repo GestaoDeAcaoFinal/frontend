@@ -16,24 +16,47 @@ export class OperacaoFormComponent implements OnInit {
     acaoId: this.formBuilder.nonNullable.control(0, [Validators.required, Validators.min(1)]),
     quantidade: this.formBuilder.nonNullable.control(0, [Validators.required, Validators.min(1), Validators.pattern(/^\d+$/)]),
     tipoOperacao: this.formBuilder.nonNullable.control<TipoOperacao>('COMPRA'),
+    precoCompra: this.formBuilder.control<number | null>(null),
     precoVenda: this.formBuilder.control<number | null>(null)
   });
   state: RequestState<OperacaoAcao> = initialRequestState<OperacaoAcao>(); acoesState: RequestState<Acao[]> = initialRequestState<Acao[]>();
-  ngOnInit(): void { this.carregarAcoes(); this.form.controls.tipoOperacao.valueChanges.subscribe(() => this.updatePriceValidation()); }
-  carregarAcoes(): void { this.acoesState = toLoadingState(this.acoesState); this.acaoService.listar().subscribe({ next: data => this.acoesState = toSuccessState(this.acoesState, data), error: (e: ApiError) => this.acoesState = toErrorState(this.acoesState, e) }); }
+  ngOnInit(): void {
+    this.carregarAcoes();
+    this.form.controls.tipoOperacao.valueChanges.subscribe(() => this.updatePriceValidation());
+    this.form.controls.acaoId.valueChanges.subscribe(acaoId => this.preencherPrecoCompra(acaoId));
+    this.updatePriceValidation();
+  }
+  carregarAcoes(): void {
+    this.acoesState = toLoadingState(this.acoesState);
+    this.acaoService.listar().subscribe({
+      next: data => {
+        this.acoesState = toSuccessState(this.acoesState, data);
+        this.preencherPrecoCompra(this.form.controls.acaoId.value);
+      },
+      error: (e: ApiError) => this.acoesState = toErrorState(this.acoesState, e)
+    });
+  }
   salvar(): void {
     if (this.state.loading) return; this.updatePriceValidation();
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    const { acaoId, quantidade, tipoOperacao, precoVenda } = this.form.getRawValue();
+    const { acaoId, quantidade, tipoOperacao, precoCompra, precoVenda } = this.form.getRawValue();
     let request$: Observable<OperacaoAcao>;
-    if (tipoOperacao === 'COMPRA') request$ = this.operacaoService.comprar(acaoId, quantidade);
+    if (tipoOperacao === 'COMPRA') request$ = this.operacaoService.comprar(acaoId, quantidade, precoCompra!);
     else request$ = this.operacaoService.vender(acaoId, quantidade, precoVenda!);
     this.state = toLoadingState(this.state);
     request$.subscribe({ next: data => this.state = toSuccessState(this.state, data, `${tipoOperacao === 'COMPRA' ? 'Compra' : 'Venda'} realizada com sucesso.`), error: (e: ApiError) => this.state = toErrorState(this.state, e) });
   }
   private updatePriceValidation(): void {
-    const control = this.form.controls.precoVenda;
-    control.setValidators(this.form.controls.tipoOperacao.value === 'VENDA' ? [Validators.required, Validators.min(0.01)] : []);
-    control.updateValueAndValidity({ emitEvent: false });
+    const compra = this.form.controls.precoCompra;
+    const venda = this.form.controls.precoVenda;
+    const ehCompra = this.form.controls.tipoOperacao.value === 'COMPRA';
+    compra.setValidators(ehCompra ? [Validators.required, Validators.min(0.01)] : []);
+    venda.setValidators(ehCompra ? [] : [Validators.required, Validators.min(0.01)]);
+    compra.updateValueAndValidity({ emitEvent: false });
+    venda.updateValueAndValidity({ emitEvent: false });
+  }
+  private preencherPrecoCompra(acaoId: number): void {
+    const acao = this.acoesState.data?.find(item => item.id === acaoId);
+    this.form.controls.precoCompra.setValue(acao?.cotacaoAtual ?? null, { emitEvent: false });
   }
 }

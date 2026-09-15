@@ -26,8 +26,10 @@ export class OperacaoService {
     return this.http.get<ResumoCarteira>(`${this.apiUrl}/carteira`);
   }
 
-  comprar(acaoId: number, quantidade: number): Observable<OperacaoAcao> {
-    const params = new HttpParams().set('quantidade', quantidade);
+  comprar(acaoId: number, quantidade: number, precoCompra: number): Observable<OperacaoAcao> {
+    const params = new HttpParams()
+      .set('quantidade', quantidade)
+      .set('precoCompra', precoCompra);
     return this.http.post<OperacaoAcao>(
       `${this.apiUrl}/comprar/${acaoId}`,
       {},

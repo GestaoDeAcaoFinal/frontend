@@ -63,6 +63,16 @@ describe('OperacaoService', () => {
     expect(await resultPromise).toEqual(resumo);
   });
 
+  it('envia o preço de compra editado', async () => {
+    const resultPromise = firstValueFrom(service.comprar(1, 1, 30));
+    const req = httpTesting.expectOne(`${apiBaseUrl}/operacoes/comprar/1?quantidade=1&precoCompra=30`);
+
+    expect(req.request.method).toBe('POST');
+    req.flush({ ...operacao, quantidade: 1, precoUnitario: 30, precoMedio: 30, valorTotal: 30 });
+
+    expect((await resultPromise).precoUnitario).toBe(30);
+  });
+
   it('lista todas as operações', async () => {
     const resultPromise = firstValueFrom(service.listar());
     const req = httpTesting.expectOne(`${apiBaseUrl}/operacoes`);
@@ -72,9 +82,10 @@ describe('OperacaoService', () => {
   });
 
   it('registra compra com quantidade como query parameter e corpo vazio', async () => {
-    const resultPromise = firstValueFrom(service.comprar(1, 10));
+    const resultPromise = firstValueFrom(service.comprar(1, 10, 32.5));
     const req = httpTesting.expectOne(request => request.url === `${apiBaseUrl}/operacoes/comprar/1`);
     expect(req.request.method).toBe('POST');
+    expect(req.request.params.get('precoCompra')).toBe('32.5');
     expect(req.request.params.get('quantidade')).toBe('10');
     expect(req.request.body).toEqual({});
     req.flush(operacao);

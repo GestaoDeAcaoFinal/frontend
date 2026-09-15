@@ -43,7 +43,8 @@
 }
 
 .section-heading h2,
-.quick-panel h2 {
+.quick-panel h2,
+.dashboard-heading h2 {
   color: var(--color-navy-950);
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 800;
