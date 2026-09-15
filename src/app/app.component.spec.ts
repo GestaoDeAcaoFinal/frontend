@@ -95,6 +95,16 @@ describe('AppComponent', () => {
     expect(compiled.querySelector('h1')?.textContent).toContain('Sua carteira, organizada');
   });
 
+  it('renderiza a carteira consolidada na saída de rotas', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    await TestBed.inject(Router).navigateByUrl('/carteira');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Carteira consolidada');
+  });
+
   it('expõe navegação financeira acessível e ação principal', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -104,7 +114,7 @@ describe('AppComponent', () => {
       .map(link => link.getAttribute('href'));
 
     expect(nav).not.toBeNull();
-    expect(destinations).toEqual(['/', '/corretoras', '/acoes', '/operacoes']);
+    expect(destinations).toEqual(['/', '/carteira', '/corretoras', '/acoes', '/operacoes']);
     expect(host.querySelector('a[href="/operacoes/nova"]')?.textContent)
       .toContain('Nova operação');
     expect(host.querySelector('main.app-main router-outlet')).not.toBeNull();
