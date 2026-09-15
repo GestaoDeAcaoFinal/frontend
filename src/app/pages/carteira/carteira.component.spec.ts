@@ -70,4 +70,19 @@ describe('CarteiraComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Nenhuma ação em posse');
   });
+
+  it('mantém a seção da carteira nomeada por um título existente no estado vazio', () => {
+    service.resumirCarteira.and.returnValue(of({ ...resumo, posicoes: [], quantidadeTotal: 0 }));
+    component.carregarCarteira();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const section = host.querySelector<HTMLElement>('section[aria-labelledby]');
+    const labelId = section?.getAttribute('aria-labelledby');
+    const label = labelId ? host.querySelector(`#${labelId}`) : null;
+
+    expect(section).not.toBeNull();
+    expect(label).not.toBeNull();
+    expect(label?.textContent?.trim()).toBe('Carteira consolidada');
+  });
 });

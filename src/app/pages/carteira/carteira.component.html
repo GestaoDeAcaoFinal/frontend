@@ -8,7 +8,7 @@
   <header class="list-toolbar">
     <div class="list-toolbar__copy">
       <p class="eyebrow">Posição atual</p>
-      <h1 class="page-heading">Carteira consolidada</h1>
+      <h1 id="carteira-titulo" class="page-heading">Carteira consolidada</h1>
       <p class="form-intro">Acompanhe o patrimônio investido e a composição atual da carteira.</p>
     </div>
     <button
@@ -20,7 +20,7 @@
     </button>
   </header>
 
-  <section class="portfolio-panel surface-card" aria-labelledby="posicoes-carteira">
+  <section class="portfolio-panel surface-card" aria-labelledby="carteira-titulo">
     @if (carteiraState.loading) {
       <div class="status-panel portfolio-status" role="status" aria-live="polite">
         Carregando carteira consolidada&hellip;
@@ -81,7 +81,7 @@
               <caption class="visually-hidden">Posições atuais da carteira</caption>
               <thead>
                 <tr>
-                  <th id="posicoes-carteira" scope="col">Ação</th>
+                  <th scope="col">Ação</th>
                   <th class="numeric" scope="col">Quantidade</th>
                   <th class="numeric" scope="col">Preço médio</th>
                   <th class="numeric" scope="col">Custo</th>
