@@ -62,9 +62,30 @@ describe('AcaoFormComponent', () => {
       .toEqual(['/', '/acoes']);
     expect(breadcrumb?.querySelector('[aria-current="page"]')?.textContent).toContain('Nova ação');
     expect(host.querySelector('form.finance-form')).not.toBeNull();
+    expect(host.querySelector('.form-section-title')?.textContent).toContain('Identificação do ativo');
     expect(host.querySelector('.form-actions')).not.toBeNull();
-    expect(host.querySelector('.form-actions a')?.getAttribute('href')).toBe('/');
+    expect(host.querySelector('.form-actions a')?.getAttribute('href')).toBe('/acoes');
     expectAccessibleFields(host, ['ticker', 'corretora']);
+  });
+
+  it('apresenta carregamento e erro de corretoras em painéis acessíveis', () => {
+    component.corretorasState = { loading: true, data: null, successMessage: null, error: null };
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.status-panel[role="status"]')?.textContent).toContain('Carregando corretoras');
+
+    component.corretorasState = {
+      loading: false,
+      data: null,
+      successMessage: null,
+      error: new ApiError(503, 'Indisponível', 'Tente novamente.')
+    };
+    fixture.detectChanges();
+
+    const errorPanel = host.querySelector('.status-panel--error[role="alert"]') as HTMLElement;
+    expect(errorPanel.textContent).toContain('Tente novamente.');
+    expect(errorPanel.querySelector('button.btn-finance-secondary')?.textContent).toContain('Tentar novamente');
   });
   it('carrega corretoras e não envia formulário inválido', () => {
     expect(component.corretorasState.data).toEqual([corretora]);

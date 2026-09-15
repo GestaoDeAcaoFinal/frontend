@@ -99,8 +99,10 @@
           <thead>
             <tr>
               <th class="numeric" scope="col">ID</th>
-              <th scope="col">Ticker</th>
+              <th scope="col">Ativo</th>
               <th scope="col">Empresa</th>
+              <th scope="col">Mercado</th>
+              <th scope="col">Moeda</th>
               <th scope="col">Corretora</th>
               <th class="numeric" scope="col">Cotação</th>
               <th scope="col">Atualização</th>
@@ -114,8 +116,9 @@
                 <td><span class="ticker-badge">{{ a.ticker }}</span></td>
                 <td>
                   <strong class="cell-primary">{{ a.nomeEmpresa || 'Empresa não informada' }}</strong>
-                  <span class="cell-secondary">{{ a.mercado || 'Mercado não informado' }}</span>
                 </td>
+                <td><span class="market-badge">{{ a.mercado || 'Não informado' }}</span></td>
+                <td><span class="currency-code">{{ a.moeda || 'BRL' }}</span></td>
                 <td>{{ a.corretoraRelacionada.razaoSocial || a.corretoraRelacionada.cnpj }}</td>
                 <td class="numeric">{{ a.cotacaoAtual === null ? 'Indisponível' : (a.cotacaoAtual | currency:(a.moeda || 'BRL')) }}</td>
                 <td><span class="cell-secondary">{{ a.dataHoraCotacao ? (a.dataHoraCotacao | date:'short') : 'Não atualizada' }}</span></td>

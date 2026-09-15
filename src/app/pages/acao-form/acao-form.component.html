@@ -15,16 +15,17 @@
 
   <section class="form-panel surface-card" aria-label="Dados da ação">
     @if (corretorasState.loading) {
-      <div class="alert alert-info" role="status">Carregando corretoras…</div>
+      <div class="status-panel" role="status" aria-live="polite">Carregando corretoras…</div>
     }
     @if (corretorasState.error) {
-      <div class="alert alert-danger" role="alert">
+      <div class="status-panel status-panel--error" role="alert">
         {{ corretorasState.error.message }}
-        <button type="button" class="btn btn-sm btn-outline-danger" (click)="carregarCorretoras()">Tentar novamente</button>
+        <button type="button" class="btn-finance-secondary" (click)="carregarCorretoras()">Tentar novamente</button>
       </div>
     }
 
     <form class="finance-form" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+      <h2 class="form-section-title">Identificação do ativo</h2>
       <div class="form-grid">
         <div class="field-group">
           <label for="ticker" class="form-label">Ticker</label>
@@ -72,17 +73,17 @@
       </div>
 
       @if (state.error) {
-        <div class="alert alert-danger" role="alert"><strong>{{ state.error.title }}:</strong> {{ state.error.message }}</div>
+        <div class="status-panel status-panel--error" role="alert"><strong>{{ state.error.title }}:</strong> {{ state.error.message }}</div>
       }
       @if (state.successMessage) {
-        <div class="alert alert-success" role="status">{{ state.successMessage }}</div>
+        <div class="status-panel" role="status">{{ state.successMessage }}</div>
       }
 
       <div class="form-actions">
         <button class="btn-finance-primary" type="submit" [disabled]="state.loading || corretorasState.loading">
           {{ state.loading ? 'Salvando…' : 'Salvar ação' }}
         </button>
-        <a routerLink="/" class="btn-finance-secondary">Cancelar</a>
+        <a routerLink="/acoes" class="btn-finance-secondary">Cancelar</a>
       </div>
     </form>
   </section>

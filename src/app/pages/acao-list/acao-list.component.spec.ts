@@ -1,3 +1,6 @@
+import { registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
+import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -8,6 +11,8 @@ import { AcaoListComponent } from './acao-list.component';
 
 const corretora: Corretora = { id: 2, cnpj: '12345678000190', razaoSocial: 'XP', nomeFantasia: null, email: null, telefone: null, cep: '01001000', logradouro: null, numero: null, complemento: null, bairro: null, cidade: 'São Paulo', uf: 'SP', situacaoCadastral: null, validadaNaCvm: true, dataCadastro: null };
 const acao: Acao = { id: 1, ticker: 'PETR4', nomeEmpresa: 'Petrobras', mercado: 'B3', moeda: 'BRL', cotacaoAtual: 35, dataHoraCotacao: null, corretoraRelacionada: corretora };
+
+registerLocaleData(localePt, 'pt-BR');
 
 function relativeLuminance(color: string): number {
   const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
@@ -38,7 +43,7 @@ describe('AcaoListComponent', () => {
   let fixture: ComponentFixture<AcaoListComponent>; let component: AcaoListComponent; let service: jasmine.SpyObj<AcaoService>;
   beforeEach(async () => {
     service = jasmine.createSpyObj('AcaoService', ['listar', 'buscarPorId', 'buscarPorTicker', 'atualizarCotacao']); service.listar.and.returnValue(of([]));
-    await TestBed.configureTestingModule({ imports: [AcaoListComponent], providers: [provideRouter([]), { provide: AcaoService, useValue: service }] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [AcaoListComponent], providers: [provideRouter([]), { provide: LOCALE_ID, useValue: 'pt-BR' }, { provide: AcaoService, useValue: service }] }).compileComponents();
     fixture = TestBed.createComponent(AcaoListComponent); component = fixture.componentInstance; fixture.detectChanges();
   });
   it('representa lista vazia e permite retry após erro', () => {
@@ -92,6 +97,16 @@ describe('AcaoListComponent', () => {
     const idCell = table.querySelector('tbody td') as HTMLTableCellElement;
     expect(idCell.classList).toContain('numeric');
     expect(idCell.textContent?.trim()).toBe('1');
+  });
+
+  it('separa mercado e moeda da cotação internacional', () => {
+    component.listState.data = [{ ...acao, mercado: 'NASDAQ', moeda: 'USD', cotacaoAtual: 190 }];
+    fixture.detectChanges();
+
+    const row = fixture.nativeElement.querySelector('tbody tr') as HTMLTableRowElement;
+    expect(row.querySelector('.market-badge')?.textContent).toContain('NASDAQ');
+    expect(row.querySelector('.currency-code')?.textContent).toContain('USD');
+    expect(row.textContent).toContain('US$');
   });
 
   it('mantém contraste AA do texto secundário sobre o hover da tabela', () => {
