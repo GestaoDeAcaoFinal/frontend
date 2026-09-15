@@ -53,6 +53,71 @@ describe('CarteiraComponent', () => {
     expect(host.textContent).toContain('convertidos para BRL pela cotação atual');
   });
 
+  it('formats every monetary metric and the four monetary columns of an international position in BRL', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const text = (element: Element | null) => element?.textContent?.replace(/\s+/g, ' ').trim();
+    const monetaryMetrics = [
+      ['valor-atual', 'R$ 1.100,00'],
+      ['custo-total', 'R$ 1.050,00'],
+      ['resultado', 'R$ 50,00']
+    ];
+
+    for (const [testId, expected] of monetaryMetrics) {
+      expect(text(host.querySelector(`[data-testid="${testId}"]`))).toBe(expected);
+    }
+
+    const cells = Array.from(host.querySelectorAll('[data-testid="posicao-AAPL"] td.numeric'));
+    expect(cells).toHaveSize(5);
+    expect(cells.slice(1).map(cell => text(cell))).toEqual([
+      'R$ 525,00',
+      'R$ 1.050,00',
+      'R$ 550,00',
+      'R$ 1.100,00'
+    ]);
+  });
+
+  it('reduces metric columns before long monetary values can be clipped at tablet widths', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const mediaRules = Array.from(document.styleSheets)
+      .flatMap(sheet => Array.from(sheet.cssRules))
+      .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule);
+    const tabletRule = mediaRules.find(rule => rule.conditionText === '(max-width: 1199px)');
+    const compactRule = mediaRules.find(rule => rule.conditionText === '(max-width: 820px)');
+
+    expect(tabletRule).toBeDefined();
+    expect(compactRule).toBeDefined();
+    if (!tabletRule || !compactRule) return;
+
+    const tabletMedia = tabletRule.media.mediaText;
+    const compactMedia = compactRule.media.mediaText;
+    const metrics = host.querySelector<HTMLElement>('.portfolio-metrics');
+    const result = host.querySelector<HTMLElement>('[data-testid="resultado"]');
+    expect(metrics).not.toBeNull();
+    expect(result).not.toBeNull();
+
+    const metricWidth = metrics!.style.width;
+    const resultText = result!.textContent;
+
+    try {
+      tabletRule.media.mediaText = 'all';
+      compactRule.media.mediaText = 'not all';
+      metrics!.style.width = '992px';
+      result!.textContent = '-R$ 9.999.999.999,99';
+      expect(getComputedStyle(metrics!).gridTemplateColumns.trim().split(' ')).toHaveSize(3);
+      expect(result!.scrollWidth).toBeLessThanOrEqual(result!.clientWidth);
+
+      compactRule.media.mediaText = 'all';
+      metrics!.style.width = '788px';
+      expect(getComputedStyle(metrics!).gridTemplateColumns.trim().split(' ')).toHaveSize(2);
+      expect(result!.scrollWidth).toBeLessThanOrEqual(result!.clientWidth);
+    } finally {
+      tabletRule.media.mediaText = tabletMedia;
+      compactRule.media.mediaText = compactMedia;
+      metrics!.style.width = metricWidth;
+      result!.textContent = resultText;
+    }
+  });
+
   it('expõe carregamento, erro com retry e estado vazio', () => {
     const pending = new Subject<ResumoCarteira>();
     service.resumirCarteira.and.returnValue(pending);

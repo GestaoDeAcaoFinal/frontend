@@ -162,6 +162,36 @@ describe('AppComponent', () => {
     }
   });
 
+  it('moves the complete navigation to its own scrollable row before the tablet width', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const mediaRules = Array.from(document.styleSheets)
+      .flatMap(sheet => Array.from(sheet.cssRules))
+      .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule);
+    const tabletRule = mediaRules.find(rule => rule.conditionText === '(max-width: 980px)');
+
+    expect(tabletRule).toBeDefined();
+    if (!tabletRule) return;
+
+    const originalMedia = tabletRule.media.mediaText;
+    tabletRule.media.mediaText = 'all';
+
+    try {
+      const headerInner = host.querySelector<HTMLElement>('.app-header__inner');
+      const nav = host.querySelector<HTMLElement>('.primary-nav');
+
+      expect(headerInner).not.toBeNull();
+      expect(nav).not.toBeNull();
+      expect(getComputedStyle(headerInner!).flexWrap).toBe('wrap');
+      expect(getComputedStyle(nav!).order).toBe('3');
+      expect(getComputedStyle(nav!).overflowX).toBe('auto');
+      expect(getComputedStyle(nav!).flexBasis).toBe('100%');
+    } finally {
+      tabletRule.media.mediaText = originalMedia;
+    }
+  });
+
   it('reduz transições, animações e rolagem quando a preferência está ativa', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
