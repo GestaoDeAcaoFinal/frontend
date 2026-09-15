@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { ApiError } from '../../core/api/api-error.interceptor';
-import { Acao, Corretora, OperacaoAcao, ResumoCarteira } from '../../core/api/api.models';
+import { Acao, Corretora, OperacaoAcao } from '../../core/api/api.models';
 import { AcaoService } from '../../services/acao.service';
 import { OperacaoService } from '../../services/operacao.service';
 import { OperacaoListComponent } from './operacao-list.component';
@@ -10,18 +10,10 @@ import { OperacaoListComponent } from './operacao-list.component';
 const corretora: Corretora = { id: 1, cnpj: '12345678000190', razaoSocial: 'XP', nomeFantasia: null, email: null, telefone: null, cep: '01001000', logradouro: null, numero: null, complemento: null, bairro: null, cidade: null, uf: null, situacaoCadastral: null, validadaNaCvm: true, dataCadastro: null };
 const acao: Acao = { id: 3, ticker: 'PETR4', nomeEmpresa: null, mercado: 'B3', moeda: 'BRL', cotacaoAtual: 35, dataHoraCotacao: null, corretoraRelacionada: corretora };
 const op: OperacaoAcao = { id: 4, quantidade: 2, precoUnitario: 35, precoMedio: null, lucroPrejuizo: null, dataOperacao: '2026-09-04T10:00:00', valorTotal: 70, tipoOperacao: 'COMPRA', acao };
-const resumo: ResumoCarteira = {
-  posicoes: [{ acaoId: 3, ticker: 'PETR4', quantidadeAtual: 3, precoMedio: 25, custoTotal: 75, cotacaoAtual: 35, valorAtual: 105 }],
-  quantidadeTotal: 3,
-  precoMedioCarteira: 25,
-  custoTotalCarteira: 75,
-  valorAtualCarteira: 105
-};
-
 describe('OperacaoListComponent', () => {
   let fixture: ComponentFixture<OperacaoListComponent>; let component: OperacaoListComponent; let service: jasmine.SpyObj<OperacaoService>; let acaoService: jasmine.SpyObj<AcaoService>;
   beforeEach(async () => {
-    service = jasmine.createSpyObj('OperacaoService', ['listar', 'listarCompras', 'listarVendas', 'listarHistorico', 'buscarPorId', 'resumirCarteira']); service.listar.and.returnValue(of([])); service.resumirCarteira.and.returnValue(of(resumo));
+    service = jasmine.createSpyObj('OperacaoService', ['listar', 'listarCompras', 'listarVendas', 'listarHistorico', 'buscarPorId', 'resumirCarteira']); service.listar.and.returnValue(of([]));
     acaoService = jasmine.createSpyObj('AcaoService', ['listar']); acaoService.listar.and.returnValue(of([acao]));
     await TestBed.configureTestingModule({ imports: [OperacaoListComponent], providers: [provideRouter([]), { provide: OperacaoService, useValue: service }, { provide: AcaoService, useValue: acaoService }] }).compileComponents();
     fixture = TestBed.createComponent(OperacaoListComponent); component = fixture.componentInstance; fixture.detectChanges();
@@ -106,13 +98,11 @@ describe('OperacaoListComponent', () => {
       .toBe('rgb(180, 35, 24)');
   });
 
-  it('carrega e exibe quantidade, preco medio e posicoes atuais da carteira', () => {
-    expect(service.resumirCarteira).toHaveBeenCalledTimes(1);
-    expect(component.carteiraState.data).toEqual(resumo);
-    fixture.detectChanges();
+  it('mantém operações independente do resumo da carteira', () => {
+    expect(service.resumirCarteira).not.toHaveBeenCalled();
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('[data-testid="quantidade-total"]')?.textContent).toContain('3');
-    expect(host.querySelector('[data-testid="preco-medio-carteira"]')?.textContent).toContain('25');
-    expect(host.querySelector('[data-testid="posicao-PETR4"]')?.textContent).toContain('3');
+    expect(host.querySelector('.portfolio-panel')).toBeNull();
+    expect(host.querySelector('[data-testid="quantidade-total"]')).toBeNull();
+    expect(host.querySelector('[aria-label="Filtros de operações"]')).not.toBeNull();
   });
 });

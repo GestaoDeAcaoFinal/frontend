@@ -9,96 +9,13 @@
     <div class="list-toolbar__copy">
       <p class="eyebrow">Movimentações</p>
       <h1 class="page-heading">Operações</h1>
-      <p class="form-intro">Consulte compras, vendas e o histórico por ação.</p>
+      <p class="form-intro">Consulte compras, vendas, movimentações por ativo e detalhes por identificador.</p>
     </div>
     <a routerLink="/operacoes/nova" class="btn-finance-primary">Nova operação</a>
   </header>
 
-  <section class="portfolio-panel surface-card" aria-labelledby="resumo-carteira">
-    <div class="table-panel__header portfolio-panel__header">
-      <div>
-        <p class="eyebrow">Posi&ccedil;&atilde;o atual</p>
-        <h2 id="resumo-carteira">Resumo da carteira</h2>
-      </div>
-      <button
-        type="button"
-        class="btn-finance-secondary"
-        [disabled]="carteiraState.loading"
-        (click)="carregarCarteira()">
-        Atualizar
-      </button>
-    </div>
-
-    @if (carteiraState.loading) {
-      <div class="status-panel portfolio-status" role="status" aria-live="polite">
-        Carregando posi&ccedil;&atilde;o atual&hellip;
-      </div>
-    } @else if (carteiraState.error) {
-      <div class="status-panel status-panel--error portfolio-status" role="alert">
-        <strong>N&atilde;o foi poss&iacute;vel carregar o resumo da carteira.</strong>
-        <span>{{ carteiraState.error.message }}</span>
-        <button type="button" class="btn-finance-secondary" (click)="carregarCarteira()">Tentar novamente</button>
-      </div>
-    } @else {
-      @if (carteiraState.data; as carteira) {
-      <div class="portfolio-metrics">
-        <article class="portfolio-metric">
-          <span>A&ccedil;&otilde;es em posse</span>
-          <strong class="numeric" data-testid="quantidade-total">{{ carteira.quantidadeTotal }}</strong>
-        </article>
-        <article class="portfolio-metric">
-          <span>Pre&ccedil;o m&eacute;dio da carteira</span>
-          <strong class="numeric" data-testid="preco-medio-carteira">{{ carteira.precoMedioCarteira | currency:'BRL' }}</strong>
-        </article>
-        <article class="portfolio-metric">
-          <span>Custo total</span>
-          <strong class="numeric">{{ carteira.custoTotalCarteira | currency:'BRL' }}</strong>
-        </article>
-        <article class="portfolio-metric">
-          <span>Valor atual</span>
-          <strong class="numeric">{{ carteira.valorAtualCarteira | currency:'BRL' }}</strong>
-        </article>
-      </div>
-
-      @if (carteira.posicoes.length === 0) {
-        <div class="status-panel portfolio-status">
-          <strong>Nenhuma a&ccedil;&atilde;o em posse.</strong>
-          <span>As novas compras aparecer&atilde;o aqui.</span>
-        </div>
-      } @else {
-        <div class="table-responsive">
-          <table class="table finance-table portfolio-table align-middle">
-            <caption class="visually-hidden">Posi&ccedil;&otilde;es atuais da carteira</caption>
-            <thead>
-              <tr>
-                <th scope="col">A&ccedil;&atilde;o</th>
-                <th class="numeric" scope="col">Quantidade atual</th>
-                <th class="numeric" scope="col">Pre&ccedil;o m&eacute;dio</th>
-                <th class="numeric" scope="col">Custo total</th>
-                <th class="numeric" scope="col">Cota&ccedil;&atilde;o atual</th>
-                <th class="numeric" scope="col">Valor atual</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (posicao of carteira.posicoes; track posicao.acaoId) {
-                <tr [attr.data-testid]="'posicao-' + posicao.ticker">
-                  <td><span class="ticker-badge">{{ posicao.ticker }}</span></td>
-                  <td class="numeric">{{ posicao.quantidadeAtual }}</td>
-                  <td class="numeric">{{ posicao.precoMedio | currency:'BRL' }}</td>
-                  <td class="numeric">{{ posicao.custoTotal | currency:'BRL' }}</td>
-                  <td class="numeric">{{ posicao.cotacaoAtual | currency:'BRL' }}</td>
-                  <td class="numeric"><strong>{{ posicao.valorAtual | currency:'BRL' }}</strong></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        }
-      }
-    }
-  </section>
-
-  <section class="filter-panel surface-card" aria-labelledby="filtros-operacoes">
+  <div class="operation-query-grid">
+    <section class="filter-panel surface-card" aria-labelledby="filtros-operacoes">
     <div class="panel-heading">
       <p class="eyebrow">Histórico da carteira</p>
       <h2 id="filtros-operacoes">Filtrar operações</h2>
@@ -132,9 +49,9 @@
         <button class="btn-finance-secondary w-100" type="submit" [disabled]="listState.loading || acoesState.loading">Consultar histórico</button>
       </div>
     </form>
-  </section>
+    </section>
 
-  <section class="filter-panel surface-card" aria-labelledby="consulta-operacao">
+    <section class="filter-panel surface-card" aria-labelledby="consulta-operacao">
     <div class="panel-heading">
       <p class="eyebrow">Consulta direta</p>
       <h2 id="consulta-operacao">Buscar operação por ID</h2>
@@ -172,7 +89,8 @@
         </div>
       }
     }
-  </section>
+    </section>
+  </div>
 
   @if (listState.loading) {
     <section class="status-panel surface-card" role="status" aria-live="polite">
