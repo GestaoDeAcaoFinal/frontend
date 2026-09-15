@@ -69,6 +69,36 @@ describe('OperacaoFormComponent', () => {
   it('carrega ações e rejeita quantidade não inteira positiva', () => {
     expect(component.acoesState.data).toEqual([acao]); component.form.setValue({ acaoId: 3, quantidade: 1.5, tipoOperacao: 'COMPRA', precoCompra: 35, precoVenda: null }); component.salvar(); expect(service.comprar).not.toHaveBeenCalled();
   });
+  it('apresenta os estados do formulário em painéis compartilhados sem alertas Bootstrap', () => {
+    component.acoesState = { loading: true, data: null, successMessage: null, error: null };
+    fixture.detectChanges();
+
+    let host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.status-panel[role="status"][aria-live="polite"]')?.textContent)
+      .toContain('Carregando ações');
+    expect(host.querySelectorAll('.alert').length).toBe(0);
+
+    component.acoesState = { loading: false, data: null, successMessage: null, error: new ApiError(503, 'Indisponível', 'Ações indisponíveis.') };
+    fixture.detectChanges();
+    host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.status-panel.status-panel--error[role="alert"]')?.textContent)
+      .toContain('Ações indisponíveis.');
+    expect(host.querySelector('.status-panel button')?.textContent).toContain('Tentar novamente');
+
+    component.acoesState = { loading: false, data: [acao], successMessage: null, error: null };
+    component.state = { loading: false, data: null, successMessage: null, error: new ApiError(409, 'Conflito', 'Saldo insuficiente.') };
+    fixture.detectChanges();
+    host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.status-panel.status-panel--error[role="alert"]')?.textContent)
+      .toContain('Conflito: Saldo insuficiente.');
+
+    component.state = { loading: false, data: operacao, successMessage: 'Compra realizada com sucesso.', error: null };
+    fixture.detectChanges();
+    host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.status-panel[role="status"][aria-live="polite"]')?.textContent)
+      .toContain('Compra realizada com sucesso.');
+    expect(host.querySelectorAll('.alert').length).toBe(0);
+  });
   it('contextualiza preço e cotação na moeda local do ativo selecionado', () => {
     const internacional = { ...acao, id: 9, ticker: 'AAPL', mercado: 'NASDAQ', moeda: 'USD', cotacaoAtual: 190 };
     component.acoesState.data = [internacional];
@@ -81,8 +111,24 @@ describe('OperacaoFormComponent', () => {
     expect(context.textContent).toContain('AAPL');
     expect(context.textContent).toContain('NASDAQ');
     expect(context.textContent).toContain('USD');
+    expect(context.querySelector('strong')?.textContent).toContain('US$');
+    expect(context.querySelector('strong')?.textContent).toContain('190,00');
     expect(fixture.nativeElement.querySelector('#preco-compra-help')?.textContent)
       .toContain('Valor informado em USD');
+  });
+  it('informa os fallbacks quando o ativo selecionado não possui mercado, moeda ou cotação', () => {
+    const semDados = { ...acao, id: 10, ticker: 'MISSING', mercado: null, moeda: null, cotacaoAtual: null };
+    component.acoesState.data = [semDados];
+    component.form.controls.acaoId.setValue(10);
+    fixture.detectChanges();
+
+    const context = fixture.nativeElement.querySelector('.asset-context') as HTMLElement;
+    expect(component.moedaSelecionada).toBe('BRL');
+    expect(context.textContent).toContain('Mercado não informado');
+    expect(context.textContent).toContain('BRL');
+    expect(context.querySelector('strong')?.textContent).toContain('Cotação indisponível');
+    expect(fixture.nativeElement.querySelector('#preco-compra-help')?.textContent)
+      .toContain('Valor informado em BRL');
   });
   it('compra com preço preenchido e bloqueia submissão duplicada', () => {
     const pending = new Subject<OperacaoAcao>(); service.comprar.and.returnValue(pending); component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoCompra: 35, precoVenda: null }); component.salvar(); component.salvar();
