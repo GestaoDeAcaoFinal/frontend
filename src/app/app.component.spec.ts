@@ -66,6 +66,26 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
+  it('apresenta a identidade institucional Nexo Capital', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(fixture.componentInstance.title).toBe('Nexo Capital');
+    expect(host.querySelector('.brand')?.getAttribute('aria-label'))
+      .toBe('Nexo Capital — visão geral');
+    expect(host.querySelector('.brand__mark')?.textContent?.trim()).toBe('NC');
+    expect(host.querySelector('.brand__name')?.textContent).toContain('Nexo Capital');
+  });
+
+  it('usa superfícies e raios contidos no sistema institucional', () => {
+    const tokens = getComputedStyle(document.documentElement);
+    expect(tokens.getPropertyValue('--radius-sm').trim()).toBe('.375rem');
+    expect(tokens.getPropertyValue('--radius-lg').trim()).toBe('.625rem');
+    expect(tokens.getPropertyValue('--shadow-card').trim())
+      .toBe('0 6px 18px rgba(7, 26, 47, .06)');
+  });
+
   it('renderiza a página inicial na saída de rotas', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     await TestBed.inject(Router).navigateByUrl('/');

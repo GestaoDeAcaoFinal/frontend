@@ -1,21 +1,28 @@
 :root {
   --color-navy-950: #071a2f;
   --color-navy-900: #0b223d;
-  --color-emerald-600: #079669;
-  --color-emerald-700: #047857;
-  --color-emerald-800: #036349;
+  --color-navy-800: #123250;
+  --color-emerald-600: #07845f;
+  --color-emerald-700: #046c50;
+  --color-emerald-800: #03563f;
   --color-slate-700: #334155;
   --color-slate-500: #64748b;
   --color-surface: #ffffff;
-  --color-canvas: #f3f7fa;
-  --color-border: #dbe4ea;
+  --color-canvas: #f4f6f8;
+  --color-border: #d8e0e7;
   --color-danger: #b42318;
-  --radius-sm: .65rem;
-  --radius-lg: 1rem;
-  --shadow-card: 0 14px 35px rgba(7, 26, 47, .08);
+  --radius-sm: .375rem;
+  --radius-lg: .625rem;
+  --shadow-card: 0 6px 18px rgba(7, 26, 47, .06);
 }
 
-body { margin: 0; color: var(--color-navy-950); background: var(--color-canvas); }
+body {
+  margin: 0;
+  color: var(--color-navy-950);
+  background: var(--color-canvas);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
 .app-container { width: min(1180px, calc(100% - 2rem)); margin-inline: auto; }
 .page-shell { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; padding: 2.25rem 0 3.5rem; }
 .surface-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); }
@@ -142,7 +149,7 @@ body { margin: 0; color: var(--color-navy-950); background: var(--color-canvas);
 .trade-badge { background: #eef2f6; color: var(--color-slate-700); }
 .trade-badge--buy { background: #dff5eb; color: var(--color-emerald-800); }
 .trade-badge--sell { background: #fde8e5; color: var(--color-danger); }
-.finance-table > tbody > tr > td.value-positive { color: var(--color-emerald-700); font-weight: 800; }
+.finance-table > tbody > tr > td.value-positive { color: #047857; font-weight: 800; }
 .finance-table > tbody > tr > td.value-negative { color: var(--color-danger); font-weight: 800; }
 .table-action { font-size: .8125rem; min-height: 2.25rem; padding: .45rem .7rem; white-space: nowrap; }
 
