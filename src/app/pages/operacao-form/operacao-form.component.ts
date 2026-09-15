@@ -20,6 +20,13 @@ export class OperacaoFormComponent implements OnInit {
     precoVenda: this.formBuilder.control<number | null>(null)
   });
   state: RequestState<OperacaoAcao> = initialRequestState<OperacaoAcao>(); acoesState: RequestState<Acao[]> = initialRequestState<Acao[]>();
+  get acaoSelecionada(): Acao | null {
+    const acaoId = this.form.controls.acaoId.value;
+    return this.acoesState.data?.find(acao => acao.id === acaoId) ?? null;
+  }
+  get moedaSelecionada(): string {
+    return this.acaoSelecionada?.moeda || 'BRL';
+  }
   ngOnInit(): void {
     this.carregarAcoes();
     this.form.controls.tipoOperacao.valueChanges.subscribe(() => this.updatePriceValidation());

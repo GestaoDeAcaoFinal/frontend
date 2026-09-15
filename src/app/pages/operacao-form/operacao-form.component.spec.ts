@@ -59,7 +59,7 @@ describe('OperacaoFormComponent', () => {
     expect(breadcrumb?.querySelector('[aria-current="page"]')?.textContent).toContain('Nova operação');
     expect(host.querySelector('form.finance-form')).not.toBeNull();
     expect(host.querySelector('.form-actions')).not.toBeNull();
-    expect(host.querySelector('.form-actions a')?.getAttribute('href')).toBe('/');
+    expect(host.querySelector('.form-actions a')?.getAttribute('href')).toBe('/operacoes');
 
     expectAccessibleFields(host, ['acao', 'quantidade', 'tipo-compra', 'tipo-venda', 'preco-compra']);
     component.form.controls.tipoOperacao.setValue('VENDA');
@@ -68,6 +68,21 @@ describe('OperacaoFormComponent', () => {
   });
   it('carrega ações e rejeita quantidade não inteira positiva', () => {
     expect(component.acoesState.data).toEqual([acao]); component.form.setValue({ acaoId: 3, quantidade: 1.5, tipoOperacao: 'COMPRA', precoCompra: 35, precoVenda: null }); component.salvar(); expect(service.comprar).not.toHaveBeenCalled();
+  });
+  it('contextualiza preço e cotação na moeda local do ativo selecionado', () => {
+    const internacional = { ...acao, id: 9, ticker: 'AAPL', mercado: 'NASDAQ', moeda: 'USD', cotacaoAtual: 190 };
+    component.acoesState.data = [internacional];
+    component.form.controls.acaoId.setValue(9);
+    fixture.detectChanges();
+
+    const context = fixture.nativeElement.querySelector('.asset-context') as HTMLElement;
+    expect(component.acaoSelecionada).toEqual(internacional);
+    expect(component.moedaSelecionada).toBe('USD');
+    expect(context.textContent).toContain('AAPL');
+    expect(context.textContent).toContain('NASDAQ');
+    expect(context.textContent).toContain('USD');
+    expect(fixture.nativeElement.querySelector('#preco-compra-help')?.textContent)
+      .toContain('Valor informado em USD');
   });
   it('compra com preço preenchido e bloqueia submissão duplicada', () => {
     const pending = new Subject<OperacaoAcao>(); service.comprar.and.returnValue(pending); component.form.setValue({ acaoId: 3, quantidade: 2, tipoOperacao: 'COMPRA', precoCompra: 35, precoVenda: null }); component.salvar(); component.salvar();

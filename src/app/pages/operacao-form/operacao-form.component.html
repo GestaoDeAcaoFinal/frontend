@@ -47,6 +47,18 @@
           </div>
         </div>
 
+        @if (acaoSelecionada; as acao) {
+          <aside class="asset-context" aria-label="Contexto do ativo selecionado">
+            <span class="ticker-badge">{{ acao.ticker }}</span>
+            <span>{{ acao.nomeEmpresa || 'Empresa não informada' }}</span>
+            <span class="market-badge">{{ acao.mercado || 'Mercado não informado' }}</span>
+            <span class="currency-code">{{ moedaSelecionada }}</span>
+            <strong class="numeric">
+              {{ acao.cotacaoAtual === null ? 'Cotação indisponível' : (acao.cotacaoAtual | currency:moedaSelecionada) }}
+            </strong>
+          </aside>
+        }
+
         <div class="field-group">
           <label for="quantidade" class="form-label">Quantidade</label>
           <input
@@ -92,7 +104,7 @@
               formControlName="precoCompra"
               aria-describedby="preco-compra-help preco-compra-error"
             >
-            <p id="preco-compra-help" class="field-help">Cotação atual preenchida automaticamente; você pode alterá-la antes de salvar.</p>
+            <p id="preco-compra-help" class="field-help">Valor informado em {{ moedaSelecionada }}. Cotação atual preenchida automaticamente; você pode alterá-la antes de salvar.</p>
             <div id="preco-compra-error" class="field-error" aria-live="polite">
               @if (form.controls.precoCompra.touched && form.controls.precoCompra.invalid) {
                 <p>Informe um preço positivo.</p>
@@ -113,7 +125,7 @@
               formControlName="precoVenda"
               aria-describedby="preco-venda-help preco-venda-error"
             >
-            <p id="preco-venda-help" class="field-help">Informe o preço unitário realizado na venda.</p>
+            <p id="preco-venda-help" class="field-help">Valor informado em {{ moedaSelecionada }}. Informe o preço unitário realizado na venda.</p>
             <div id="preco-venda-error" class="field-error" aria-live="polite">
               @if (form.controls.precoVenda.touched && form.controls.precoVenda.invalid) {
                 <p>Informe um preço positivo.</p>
@@ -134,7 +146,7 @@
         <button class="btn-finance-primary" type="submit" [disabled]="state.loading || acoesState.loading">
           {{ state.loading ? 'Processando…' : 'Salvar operação' }}
         </button>
-        <a routerLink="/" class="btn-finance-secondary">Cancelar</a>
+        <a routerLink="/operacoes" class="btn-finance-secondary">Cancelar</a>
       </div>
     </form>
   </section>
