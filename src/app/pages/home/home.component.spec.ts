@@ -182,9 +182,8 @@ describe('HomeComponent', () => {
     ];
     fixture.detectChanges();
 
-    const recentOperations = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('.recent-operation')
-    );
+    const host = fixture.nativeElement as HTMLElement;
+    const recentOperations = Array.from(host.querySelectorAll('.recent-operation'));
     const tickers = recentOperations.map(row =>
       row.querySelector('.recent-operation__asset strong')?.textContent?.trim()
     );
@@ -193,6 +192,9 @@ describe('HomeComponent', () => {
     expect(tickers).toEqual(['MSFT', 'ITUB4', 'BBDC4', 'PETR4', 'VALE3']);
     expect(recentOperations[0].querySelector('.recent-operation__value')?.textContent)
       .toMatch(/US\$\s*1\.234,56/);
+    expect(host.querySelector('[data-testid="valor-atual"]')?.textContent).toMatch(/R\$\s*420,00/);
+    expect(host.querySelector('[data-testid="custo-total"]')?.textContent).toMatch(/R\$\s*360,00/);
+    expect(host.querySelector('[data-testid="resultado"]')?.textContent).toMatch(/R\$\s*60,00/);
   });
 
   it('usa um contêiner neutro e preserva o main único do shell', () => {
