@@ -39,6 +39,12 @@ export class HomeComponent implements OnInit {
     return carteira ? carteira.valorAtualCarteira - carteira.custoTotalCarteira : 0;
   }
 
+  get posicoesRelevantes(): PosicaoCarteira[] {
+    return [...(this.carteiraState.data?.posicoes ?? [])]
+      .sort((first, second) => second.valorAtual - first.valorAtual)
+      .slice(0, 5);
+  }
+
   get operacoesRecentes(): OperacaoAcao[] {
     return [...(this.operacoesState.data ?? [])]
       .sort((first, second) => new Date(second.dataOperacao).getTime() - new Date(first.dataOperacao).getTime())

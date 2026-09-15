@@ -11,31 +11,6 @@ import { HomeComponent } from './home.component';
 
 registerLocaleData(localePt, 'pt-BR');
 
-type Rgb = [number, number, number];
-
-function parseCssRgb(value: string): Rgb {
-  const channels = value.match(/[\d.]+/g)?.map(Number);
-  if (!channels || channels.length < 3) {
-    throw new Error(`Cor CSS inválida: ${value}`);
-  }
-
-  return [channels[0], channels[1], channels[2]];
-}
-
-function relativeLuminance(rgb: Rgb): number {
-  const [red, green, blue] = rgb.map(channel => {
-    const value = channel / 255;
-    return value <= .03928 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
-  });
-  return .2126 * red + .7152 * green + .0722 * blue;
-}
-
-function contrastRatio(first: Rgb, second: Rgb): number {
-  const lighter = Math.max(relativeLuminance(first), relativeLuminance(second));
-  const darker = Math.min(relativeLuminance(first), relativeLuminance(second));
-  return (lighter + .05) / (darker + .05);
-}
-
 describe('HomeComponent', () => {
   let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
@@ -117,7 +92,7 @@ describe('HomeComponent', () => {
 
   it('apresenta indicadores financeiros obtidos da API', () => {
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('h1')?.textContent).toContain('Sua carteira, organizada');
+    expect(host.querySelector('h1')?.textContent).toContain('Visão consolidada');
     expect(host.querySelector('[data-testid="valor-atual"]')?.textContent).toContain('420,00');
     expect(host.querySelector('[data-testid="custo-total"]')?.textContent).toContain('360,00');
     expect(host.querySelector('[data-testid="resultado"]')?.textContent).toContain('60,00');
@@ -137,17 +112,20 @@ describe('HomeComponent', () => {
     expect(recentOperations[1].textContent).toContain('VALE3');
   });
 
-  it('expõe navegação para os seis fluxos principais', () => {
-    const destinations = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('a.quick-action'))
-      .map(link => link.getAttribute('href'));
-    expect(destinations).toEqual([
-      '/corretoras/nova',
-      '/corretoras',
-      '/acoes/nova',
-      '/acoes',
-      '/operacoes/nova',
-      '/operacoes'
-    ]);
+  it('prioriza as cinco maiores posições no resumo executivo', () => {
+    component.carteiraState.data = {
+      ...carteira,
+      posicoes: [
+        ...carteira.posicoes,
+        { acaoId: 3, ticker: 'ITUB4', quantidadeAtual: 3, precoMedio: 20, custoTotal: 60, cotacaoAtual: 30, valorAtual: 90 },
+        { acaoId: 4, ticker: 'BBDC4', quantidadeAtual: 2, precoMedio: 25, custoTotal: 50, cotacaoAtual: 30, valorAtual: 60 },
+        { acaoId: 5, ticker: 'WEGE3', quantidadeAtual: 1, precoMedio: 45, custoTotal: 45, cotacaoAtual: 50, valorAtual: 50 },
+        { acaoId: 6, ticker: 'ABEV3', quantidadeAtual: 1, precoMedio: 12, custoTotal: 12, cotacaoAtual: 15, valorAtual: 15 }
+      ]
+    };
+    expect(component.posicoesRelevantes.length).toBe(5);
+    expect(component.posicoesRelevantes[0].valorAtual)
+      .toBeGreaterThanOrEqual(component.posicoesRelevantes[4].valorAtual);
   });
 
   it('usa um contêiner neutro e preserva o main único do shell', () => {
@@ -157,24 +135,12 @@ describe('HomeComponent', () => {
     expect(host.querySelector('main')).toBeNull();
   });
 
-  it('expõe o hero e estrutura cada acesso rápido com título e descrição', () => {
+  it('oferece acesso direto à carteira e ao extrato sem duplicar cadastros', () => {
     const host = fixture.nativeElement as HTMLElement;
-    const quickActions = Array.from(host.querySelectorAll('.quick-action'));
-
-    expect(host.querySelector('.hero-panel')).not.toBeNull();
-    expect(quickActions.length).toBe(6);
-    quickActions.forEach(action => {
-      expect(action.querySelector('strong')).not.toBeNull();
-      expect(action.querySelector('span')).not.toBeNull();
-    });
-  });
-
-  it('mantém contraste AA nas descrições dos acessos rápidos', () => {
-    const action = (fixture.nativeElement as HTMLElement).querySelector('.quick-action') as HTMLElement;
-    const description = action.querySelector('span') as HTMLElement;
-    const foreground = parseCssRgb(getComputedStyle(description).color);
-    const background = parseCssRgb(getComputedStyle(action).backgroundColor);
-
-    expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+    expect(host.querySelector('h1')?.textContent).toContain('Visão consolidada');
+    expect(host.querySelector('a[href="/carteira"]')).not.toBeNull();
+    expect(host.querySelector('a[href="/operacoes"]')).not.toBeNull();
+    expect(host.querySelector('.quick-grid')).toBeNull();
+    expect(host.querySelector('.domain-grid')).toBeNull();
   });
 });

@@ -20,7 +20,7 @@
 .allocation-row__label, .allocation-row__detail { align-items: center; display: flex; gap: 1rem; justify-content: space-between; }
 .allocation-row__detail { color: var(--color-slate-700); font-size: .82rem; margin-top: .7rem; }
 .allocation-track { background: #e6eef3; border-radius: 999px; height: .5rem; overflow: hidden; width: 100%; }
-.allocation-fill { background: linear-gradient(90deg, var(--color-emerald-700), #22b887); border-radius: inherit; display: block; height: 100%; }
+.allocation-fill { background: var(--color-emerald-700); border-radius: inherit; display: block; height: 100%; }
 .recent-operation { align-items: center; display: grid; gap: .75rem; grid-template-columns: auto minmax(0, 1fr) auto; }
 .recent-operation__asset, .recent-operation__value { display: flex; flex-direction: column; }
 .recent-operation__asset span, .recent-operation__value span { color: var(--color-slate-500); font-size: .78rem; margin-top: .15rem; }

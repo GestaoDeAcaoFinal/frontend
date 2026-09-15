@@ -92,7 +92,7 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Sua carteira, organizada');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Visão consolidada');
   });
 
   it('renderiza a carteira consolidada na saída de rotas', async () => {
