@@ -176,18 +176,35 @@ describe('AppComponent', () => {
 
     const originalMedia = tabletRule.media.mediaText;
     tabletRule.media.mediaText = 'all';
+    const header = host.querySelector<HTMLElement>('.app-header');
+    const headerWidth = header?.style.width ?? '';
 
     try {
       const headerInner = host.querySelector<HTMLElement>('.app-header__inner');
       const nav = host.querySelector<HTMLElement>('.primary-nav');
+      const action = host.querySelector<HTMLElement>('.header-action');
 
       expect(headerInner).not.toBeNull();
       expect(nav).not.toBeNull();
+      expect(header).not.toBeNull();
+      expect(action).not.toBeNull();
+
+      header!.style.width = '768px';
+
       expect(getComputedStyle(headerInner!).flexWrap).toBe('wrap');
       expect(getComputedStyle(nav!).order).toBe('3');
       expect(getComputedStyle(nav!).overflowX).toBe('auto');
       expect(getComputedStyle(nav!).flexBasis).toBe('100%');
+      expect(header!.scrollWidth).toBeLessThanOrEqual(header!.clientWidth);
+      expect(nav!.offsetTop).toBeGreaterThan(action!.offsetTop);
+      expect(nav!.clientWidth).toBeLessThanOrEqual(header!.clientWidth);
+      expect(Array.from(nav!.querySelectorAll('a')).every(link => {
+        const style = getComputedStyle(link);
+        return style.flexShrink === '0' && link.scrollWidth <= link.clientWidth;
+      })).toBeTrue();
+
     } finally {
+      header!.style.width = headerWidth;
       tabletRule.media.mediaText = originalMedia;
     }
   });

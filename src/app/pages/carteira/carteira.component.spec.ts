@@ -76,7 +76,7 @@ describe('CarteiraComponent', () => {
     ]);
   });
 
-  it('reduces metric columns before long monetary values can be clipped at tablet widths', () => {
+  it('keeps long negative monetary values visible across desktop and tablet metric grids', () => {
     const host = fixture.nativeElement as HTMLElement;
     const mediaRules = Array.from(document.styleSheets)
       .flatMap(sheet => Array.from(sheet.cssRules))
@@ -97,12 +97,20 @@ describe('CarteiraComponent', () => {
 
     const metricWidth = metrics!.style.width;
     const resultText = result!.textContent;
+    const resultFontSize = result!.style.fontSize;
 
     try {
-      tabletRule.media.mediaText = 'all';
+      tabletRule.media.mediaText = 'not all';
       compactRule.media.mediaText = 'not all';
-      metrics!.style.width = '992px';
+      metrics!.style.width = '1180px';
       result!.textContent = '-R$ 9.999.999.999,99';
+      result!.style.fontSize = '25.6px';
+      expect(getComputedStyle(metrics!).gridTemplateColumns.trim().split(' ')).toHaveSize(3);
+      expect(result!.scrollWidth).toBeLessThanOrEqual(result!.clientWidth);
+
+      tabletRule.media.mediaText = 'all';
+      metrics!.style.width = '868px';
+      result!.style.fontSize = '18px';
       expect(getComputedStyle(metrics!).gridTemplateColumns.trim().split(' ')).toHaveSize(3);
       expect(result!.scrollWidth).toBeLessThanOrEqual(result!.clientWidth);
 
@@ -115,6 +123,7 @@ describe('CarteiraComponent', () => {
       compactRule.media.mediaText = compactMedia;
       metrics!.style.width = metricWidth;
       result!.textContent = resultText;
+      result!.style.fontSize = resultFontSize;
     }
   });
 
