@@ -121,6 +121,17 @@ describe('CorretoraListComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Localidade não informada');
   });
 
+  it('destaca o estado cadastral sem alterar os dados da consulta', () => {
+    fixture.detectChanges();
+    component.listState.data = [corretora];
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector('.query-panel--compact')).not.toBeNull();
+    expect(host.querySelector('.entity-status--verified')?.textContent).toContain('Validada na CVM');
+    expect(host.querySelector('[data-testid="corretora-count"]')?.textContent).toContain('1 registro');
+  });
+
   it('organiza consulta e resultados como uma listagem financeira', () => {
     service.listar.and.returnValue(of([corretora]));
     fixture.detectChanges();

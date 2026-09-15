@@ -90,6 +90,17 @@ describe('CorretoraFormComponent', () => {
     expectAccessibleFields(host, ['cnpj', 'cep']);
   });
 
+  it('mantém a identificação e os vínculos acessíveis do cadastro', () => {
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector('.form-panel .form-section-title')?.textContent)
+      .toContain('Identificação da instituição');
+    expect(host.querySelector('#cnpj')?.getAttribute('aria-describedby')).toContain('cnpj-error');
+    expect(host.querySelector('#cep')?.getAttribute('aria-describedby')).toContain('cep-error');
+    expect(host.querySelector('.form-actions a')?.getAttribute('href')).toBe('/corretoras');
+  });
+
   it('mantém contraste AA no breadcrumb', () => {
     fixture.detectChanges();
     const breadcrumb = fixture.nativeElement.querySelector('.breadcrumb-nav') as HTMLElement;
