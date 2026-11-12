@@ -1,0 +1,92 @@
+name: Frontend CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Testes de componentes e serviços
+        run: npm test -- --watch=false --browsers=ChromeHeadless --progress=false
+      - name: Build de produção
+        run: npm run build
+
+  integration:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      E2E_BACKEND_DIR: ${{ github.workspace }}/.backend
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Ler revisão compatível do backend
+        id: backend
+        shell: bash
+        run: |
+          ref=$(tr -d '\r\n' < .ci/backend-ref.txt)
+          if [[ ! "$ref" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'A referência do backend deve conter um SHA completo.' >&2
+            exit 1
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: GestaoDeAcaoFinal/backend
+          ref: ${{ steps.backend.outputs.ref }}
+          path: .backend
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: .backend/pom.xml
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Instalar Chromium de teste
+        run: npx playwright install --with-deps chromium
+      - name: Testes ponta a ponta
+        run: npm run test:e2e
+      - name: Construir imagens de produção
+        run: |
+          docker build --tag gestao-backend:ci .backend
+          docker build --tag gestao-frontend:ci .
+      - name: Validar Nginx, JWT, perfis e revogação em containers
+        env:
+          BACKEND_IMAGE: gestao-backend:ci
+          FRONTEND_IMAGE: gestao-frontend:ci
+        run: npm run test:docker
+      - name: Relatório E2E com dados fictícios
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: frontend-e2e-results
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 7
