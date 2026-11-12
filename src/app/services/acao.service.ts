@@ -1,9 +1,16 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, concatMap, from, map, Observable, of, throwError, toArray } from 'rxjs';
+import { ApiError } from '../core/api/api-error.interceptor';
 
 import { API_BASE_URL } from '../core/api/api-base-url.token';
 import { Acao, AcaoRequest } from '../core/api/api.models';
+
+export interface AtualizacaoCotacao {
+  ticker: string;
+  sucesso: boolean;
+  erro?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -36,5 +43,17 @@ export class AcaoService {
 
   atualizarCotacao(id: number): Observable<Acao> {
     return this.http.put<Acao>(`${this.apiUrl}/${id}/atualizar-cotacao`, {});
+  }
+
+  atualizarTodasCotacoes(): Observable<AtualizacaoCotacao[]> {
+    return this.listar().pipe(concatMap(acoes => from(acoes).pipe(
+      concatMap(acao => this.atualizarCotacao(acao.id).pipe(
+        map(() => ({ ticker: acao.ticker, sucesso: true })),
+        catchError((erro: ApiError) => erro.status === 401 || erro.status === 403
+          ? throwError(() => erro)
+          : of({ ticker: acao.ticker, sucesso: false, erro: erro.message }))
+      )),
+      toArray()
+    )));
   }
 }

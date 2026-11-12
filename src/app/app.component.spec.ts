@@ -1,9 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { signal, WritableSignal } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { routes } from './app.routes';
 import { OperacaoService } from './services/operacao.service';
+import { AuthService } from './core/auth/auth.service';
+import { AcaoService } from './services/acao.service';
 
 type Rgb = [number, number, number];
 
@@ -50,12 +53,21 @@ describe('AppComponent', () => {
       valorAtualCarteira: 0
     }));
     operacaoService.listar.and.returnValue(of([]));
+    const authService = jasmine.createSpyObj<AuthService>('AuthService', ['logout', 'hasRole', 'restoreSession'], {
+      isAuthenticated: signal(true),
+      username: signal<string | null>('admin'),
+      token: signal<string | null>('token'),
+      user: signal(null)
+    });
+    authService.hasRole.and.returnValue(true);
 
     await TestBed.configureTestingModule({
       imports: [AppComponent],
       providers: [
+        { provide: AcaoService, useValue: { atualizarTodasCotacoes: () => of([]) } },
         provideRouter(routes),
-        { provide: OperacaoService, useValue: operacaoService }
+        { provide: OperacaoService, useValue: operacaoService },
+        { provide: AuthService, useValue: authService }
       ]
     }).compileComponents();
   });
@@ -64,6 +76,24 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
+  });
+  it('oculta administração para USER e mantém operação e logout', () => {
+    (TestBed.inject(AuthService).hasRole as jasmine.Spy).and.returnValue(false);
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('a[href="/usuarios"]')).toBeNull();
+    expect(host.querySelector('a[href="/operacoes/nova"]')).not.toBeNull();
+    expect(host.textContent).toContain('Sair');
+  });
+  it('redireciona para login quando uma sessão ativa expira', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const router = TestBed.inject(Router);
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    (TestBed.inject(AuthService).isAuthenticated as WritableSignal<boolean>).set(false);
+    fixture.detectChanges();
+    expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { returnUrl: router.url } });
   });
 
   it('apresenta a identidade institucional Nexo Capital', () => {
@@ -114,7 +144,7 @@ describe('AppComponent', () => {
       .map(link => link.getAttribute('href'));
 
     expect(nav).not.toBeNull();
-    expect(destinations).toEqual(['/', '/carteira', '/corretoras', '/acoes', '/operacoes']);
+    expect(destinations).toEqual(['/usuarios', '/', '/carteira', '/corretoras', '/acoes', '/operacoes']);
     expect(host.querySelector('a[href="/operacoes/nova"]')?.textContent)
       .toContain('Nova operação');
     expect(host.querySelector('main.app-main router-outlet')).not.toBeNull();

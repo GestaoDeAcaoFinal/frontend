@@ -20,9 +20,11 @@
         class="btn-finance-secondary dashboard-refresh"
         (click)="carregarDashboard()"
         [disabled]="carteiraState.loading || operacoesState.loading">
-        Atualizar dados
+        Recarregar dados
       </button>
     </div>
+
+    <app-atualizar-cotacoes (atualizadas)="carregarDashboard()" />
 
     @if ((carteiraState.loading && !carteiraState.data) || (operacoesState.loading && !operacoesState.data)) {
       <div class="status-panel surface-card" role="status" aria-live="polite">
@@ -78,26 +80,50 @@
               <span>Registre uma compra para acompanhar a distribuição.</span>
             </div>
           } @else {
-            <div class="allocation-list">
-              @for (posicao of posicoesRelevantes; track posicao.acaoId) {
-                <div class="allocation-row">
-                  <div class="allocation-row__label">
-                    <span class="ticker-badge">{{ posicao.ticker }}</span>
-                    <strong class="numeric">{{ posicao.valorAtual | currency:'BRL' }}</strong>
+            <div class="allocation-chart">
+              <div class="allocation-summary">
+                <span>Valor atual da carteira</span>
+                <strong class="numeric">{{ carteira.valorAtualCarteira | currency:'BRL' }}</strong>
+              </div>
+              <div class="allocation-bar" role="group" aria-label="Participação dos ativos no valor da carteira">
+                @for (posicao of posicoesDistribuicao; track posicao.acaoId) {
+                  <button type="button" class="allocation-segment"
+                    [class.is-selected]="selectedAllocation?.acaoId === posicao.acaoId"
+                    [style.width.%]="allocationWidth(posicao)"
+                    [style.background-color]="allocationColor(posicao)"
+                    [attr.aria-label]="posicao.ticker + ': ' + (allocationPercent(posicao) | number:'1.0-2') + '% da carteira, ' + (posicao.valorAtual | currency:'BRL')"
+                    [attr.aria-pressed]="selectedAllocation?.acaoId === posicao.acaoId"
+                    (mouseenter)="selecionarAtivo(posicao.acaoId)"
+                    (focus)="selecionarAtivo(posicao.acaoId)"
+                    (click)="selecionarAtivo(posicao.acaoId)">
+                  </button>
+                }
+              </div>
+              <p class="allocation-hint">Passe o mouse ou selecione um ativo para ver os detalhes.</p>
+              <div class="allocation-legend" role="group" aria-label="Selecionar ativo da carteira">
+                @for (posicao of posicoesDistribuicao; track posicao.acaoId) {
+                  <button type="button" class="allocation-legend__button"
+                    [class.is-selected]="selectedAllocation?.acaoId === posicao.acaoId"
+                    [attr.aria-pressed]="selectedAllocation?.acaoId === posicao.acaoId"
+                    (mouseenter)="selecionarAtivo(posicao.acaoId)"
+                    (focus)="selecionarAtivo(posicao.acaoId)"
+                    (click)="selecionarAtivo(posicao.acaoId)">
+                    <span class="allocation-dot" [style.background-color]="allocationColor(posicao)" aria-hidden="true"></span>
+                    <span class="allocation-legend__ticker">{{ posicao.ticker }}</span>
+                    <span class="numeric">{{ allocationPercent(posicao) | number:'1.0-2' }}%</span>
+                  </button>
+                }
+              </div>
+              @if (selectedAllocation; as posicao) {
+                <div class="allocation-detail" data-testid="allocation-detail" aria-live="polite" aria-atomic="true">
+                  <div class="allocation-detail__asset">
+                    <span class="allocation-dot" [style.background-color]="allocationColor(posicao)" aria-hidden="true"></span>
+                    <strong>{{ posicao.ticker }}</strong>
+                    <span>{{ posicao.quantidadeAtual }} {{ posicao.quantidadeAtual === 1 ? 'ação' : 'ações' }}</span>
                   </div>
-                  <div class="allocation-row__detail">
-                    <div class="allocation-track">
-                      <span
-                        class="allocation-fill"
-                        role="progressbar"
-                        [attr.aria-label]="'Participação de ' + posicao.ticker + ' na carteira'"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                        [attr.aria-valuenow]="allocationPercent(posicao)"
-                        [style.width.%]="allocationPercent(posicao)">
-                      </span>
-                    </div>
-                    <span class="numeric">{{ allocationPercent(posicao) | number:'1.0-1' }}%</span>
+                  <div class="allocation-detail__value">
+                    <strong class="numeric">{{ posicao.valorAtual | currency:'BRL' }}</strong>
+                    <span>{{ allocationPercent(posicao) | number:'1.0-2' }}% da carteira</span>
                   </div>
                 </div>
               }

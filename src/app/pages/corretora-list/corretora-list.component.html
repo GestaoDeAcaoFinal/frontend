@@ -11,7 +11,7 @@
       <h1 class="page-heading">Corretoras</h1>
       <p class="form-intro">Consulte por ID ou CNPJ e acompanhe todas as corretoras.</p>
     </div>
-    <a routerLink="/corretoras/nova" class="btn-finance-primary">Nova corretora</a>
+    @if (auth.hasRole('ADMIN')) { <a routerLink="/corretoras/nova" class="btn-finance-primary">Nova corretora</a> }
   </header>
 
   <section class="filter-panel surface-card query-panel--compact" aria-labelledby="consulta-corretora">

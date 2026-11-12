@@ -1,0 +1,71 @@
+import { Component, inject, OnInit } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs';
+import { UsuarioResponse, Papel } from '../../core/auth/auth.models';
+import { UsuarioService } from '../../services/usuario.service';
+
+@Component({
+  selector: 'app-usuarios', imports: [ReactiveFormsModule],
+  templateUrl: './usuarios.component.html'
+})
+export class UsuariosComponent implements OnInit {
+  private readonly service = inject(UsuarioService);
+  private readonly fb = inject(FormBuilder);
+  usuarios: UsuarioResponse[] = [];
+  editingId: number | null = null;
+  loading = false;
+  saving = false;
+  message = '';
+  error = '';
+  readonly form = this.fb.nonNullable.group({
+    username: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(100)]],
+    password: [''], papel: this.fb.nonNullable.control<Papel>('USER'), ativo: [true]
+  });
+  readonly senhaForm = this.fb.nonNullable.group({
+    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]]
+  });
+  senhaUsuario: UsuarioResponse | null = null;
+  ngOnInit() { this.novo(); this.carregar(); }
+  carregar() {
+    this.error = '';
+    this.loading = true;
+    this.service.listar().pipe(finalize(() => this.loading = false)).subscribe({
+      next: users => this.usuarios = users,
+      error: e => this.error = e.message
+    });
+  }
+  novo() {
+    this.editingId = null;
+    this.form.reset({ username: '', password: '', papel: 'USER', ativo: true });
+    this.form.controls.password.setValidators([Validators.required, Validators.minLength(8), Validators.maxLength(72)]);
+    this.form.controls.password.updateValueAndValidity();
+  }
+  editar(user: UsuarioResponse) {
+    this.editingId = user.id;
+    this.form.reset({ username: user.username, password: '', papel: user.papel, ativo: user.ativo });
+    this.form.controls.password.clearValidators();
+    this.form.controls.password.updateValueAndValidity();
+  }
+  salvar() {
+    if (this.form.invalid || this.saving) { this.form.markAllAsTouched(); return; }
+    this.saving = true; this.error = ''; this.message = '';
+    const { username, password, papel, ativo } = this.form.getRawValue();
+    const request = this.editingId === null
+      ? this.service.cadastrar({ username, password, papel })
+      : this.service.atualizar(this.editingId, { username, papel, ativo });
+    request.pipe(finalize(() => this.saving = false)).subscribe({
+      next: () => { this.message = 'Usuário salvo com sucesso.'; this.novo(); this.carregar(); },
+      error: e => this.error = e.message
+    });
+  }
+  prepararSenha(user: UsuarioResponse) { this.senhaUsuario = user; this.senhaForm.reset(); }
+  salvarSenha() {
+    if (!this.senhaUsuario || this.senhaForm.invalid || this.saving) { this.senhaForm.markAllAsTouched(); return; }
+    this.saving = true; this.error = ''; this.message = '';
+    this.service.alterarSenha(this.senhaUsuario.id, this.senhaForm.getRawValue().password)
+      .pipe(finalize(() => this.saving = false)).subscribe({
+        next: () => { this.senhaForm.reset(); this.senhaUsuario = null; this.message = 'Senha alterada com sucesso.'; },
+        error: e => this.error = e.message
+      });
+  }
+}

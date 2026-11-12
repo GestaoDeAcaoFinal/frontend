@@ -11,8 +11,9 @@
       <h1 class="page-heading">Ações</h1>
       <p class="form-intro">Consulte ativos e atualize suas cotações.</p>
     </div>
-    <a routerLink="/acoes/nova" class="btn-finance-primary">Nova ação</a>
+    @if (auth.hasRole('ADMIN')) { <a routerLink="/acoes/nova" class="btn-finance-primary">Nova ação</a> }
   </header>
+  <app-atualizar-cotacoes (atualizadas)="carregarAcoes()" />
 
   <section class="filter-panel surface-card" aria-labelledby="consulta-acao">
     <div class="panel-heading">
@@ -53,14 +54,14 @@
           <strong>{{ a.nomeEmpresa || 'Empresa não informada' }}</strong>
           <span>{{ a.corretoraRelacionada.razaoSocial || a.corretoraRelacionada.cnpj }}</span>
         </div>
-        <button
+        @if (auth.hasRole('ADMIN')) { <button
           type="button"
           class="btn-finance-secondary"
           (click)="atualizarCotacao(a)"
           [disabled]="updating.has(a.id)"
           [attr.aria-label]="'Atualizar cotação de ' + a.ticker">
           {{ updating.has(a.id) ? 'Atualizando…' : 'Atualizar cotação' }}
-        </button>
+        </button> }
         @if (updateErrors[a.id]) {
           <div class="field-error" role="alert">{{ updateErrors[a.id].message }}</div>
         }
@@ -123,14 +124,14 @@
                 <td class="numeric">{{ a.cotacaoAtual === null ? 'Indisponível' : (a.cotacaoAtual | currency:(a.moeda || 'BRL')) }}</td>
                 <td><span class="cell-secondary">{{ a.dataHoraCotacao ? (a.dataHoraCotacao | date:'short') : 'Não atualizada' }}</span></td>
                 <td>
-                  <button
+                  @if (auth.hasRole('ADMIN')) { <button
                     type="button"
                     class="btn-finance-secondary table-action"
                     (click)="atualizarCotacao(a)"
                     [disabled]="updating.has(a.id)"
                     [attr.aria-label]="'Atualizar cotação de ' + a.ticker">
                     {{ updating.has(a.id) ? 'Atualizando…' : 'Atualizar cotação' }}
-                  </button>
+                  </button> }
                   @if (updateErrors[a.id]) {
                     <div class="field-error" role="alert">{{ updateErrors[a.id].message }}</div>
                   }

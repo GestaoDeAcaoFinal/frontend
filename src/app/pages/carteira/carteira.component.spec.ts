@@ -9,6 +9,8 @@ import { ApiError } from '../../core/api/api-error.interceptor';
 import { ResumoCarteira } from '../../core/api/api.models';
 import { OperacaoService } from '../../services/operacao.service';
 import { CarteiraComponent } from './carteira.component';
+import { AuthService } from '../../core/auth/auth.service';
+import { AcaoService } from '../../services/acao.service';
 
 registerLocaleData(localePt, 'pt-BR');
 
@@ -33,6 +35,8 @@ describe('CarteiraComponent', () => {
     await TestBed.configureTestingModule({
       imports: [CarteiraComponent],
       providers: [
+        { provide: AuthService, useValue: { hasRole: () => false } },
+        { provide: AcaoService, useValue: {} },
         provideRouter([]),
         { provide: LOCALE_ID, useValue: 'pt-BR' },
         { provide: OperacaoService, useValue: service }

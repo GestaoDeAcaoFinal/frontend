@@ -14,7 +14,7 @@ export class AcaoFormComponent implements OnInit {
   private readonly acaoService = inject(AcaoService);
   private readonly corretoraService = inject(CorretoraService);
   readonly form = this.formBuilder.nonNullable.group({
-    ticker: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9.]{2,12}$/)]],
+    ticker: ['', [Validators.required, Validators.pattern(/^\s*(?=.*[A-Za-z])[A-Za-z0-9]{1,12}\s*$/)]],
     corretoraId: [0, [Validators.required, Validators.min(1)]]
   });
   state: RequestState<Acao> = initialRequestState<Acao>();

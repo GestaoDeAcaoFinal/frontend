@@ -7,10 +7,13 @@ import { ApiError } from '../../core/api/api-error.interceptor';
 import { Acao } from '../../core/api/api.models';
 import { initialRequestState, RequestState, toErrorState, toLoadingState, toSuccessState } from '../../core/state/request-state';
 import { AcaoService } from '../../services/acao.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { AtualizarCotacoesComponent } from './atualizar-cotacoes.component';
 
 type SearchCriterion = 'id' | 'ticker';
-@Component({ selector: 'app-acao-list', imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, RouterLink], templateUrl: './acao-list.component.html', styleUrl: './acao-list.component.css' })
+@Component({ selector: 'app-acao-list', imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, RouterLink, AtualizarCotacoesComponent], templateUrl: './acao-list.component.html', styleUrl: './acao-list.component.css' })
 export class AcaoListComponent implements OnInit {
+  readonly auth = inject(AuthService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly acaoService = inject(AcaoService);
   readonly searchForm = this.formBuilder.nonNullable.group({ criterio: this.formBuilder.nonNullable.control<SearchCriterion>('id'), valor: ['', Validators.required] });
@@ -28,7 +31,7 @@ export class AcaoListComponent implements OnInit {
     if (!valor) { this.invalidSearch({ required: true }); return; }
     let request$: Observable<Acao>;
     if (criterio === 'id') { if (!/^[1-9]\d*$/.test(valor)) { this.invalidSearch({ positiveInteger: true }); return; } request$ = this.acaoService.buscarPorId(Number(valor)); }
-    else { if (!/^[A-Za-z0-9.]{2,12}$/.test(valor)) { this.invalidSearch({ ticker: true }); return; } request$ = this.acaoService.buscarPorTicker(valor.toUpperCase()); }
+    else { if (!/^(?=.*[A-Za-z])[A-Za-z0-9]{1,12}$/.test(valor)) { this.invalidSearch({ ticker: true }); return; } request$ = this.acaoService.buscarPorTicker(valor.toUpperCase()); }
     this.searchState = toLoadingState(this.searchState);
     request$.subscribe({ next: data => this.searchState = toSuccessState(this.searchState, data), error: (e: ApiError) => this.searchState = toErrorState(this.searchState, e) });
   }

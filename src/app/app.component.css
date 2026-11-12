@@ -83,6 +83,7 @@
   color: #fff;
 }
 
+.header-session { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
 .header-action {
   flex: 0 0 auto;
   margin-left: auto;

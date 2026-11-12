@@ -1,0 +1,48 @@
+<section class="app-container py-4">
+  <h1>Usuários</h1>
+  <p>Administre o acesso e as permissões da equipe.</p>
+  @if (error) { <div class="alert alert-danger" role="alert">{{ error }}</div> }
+  @if (message) { <div class="alert alert-success" role="status">{{ message }}</div> }
+  @if (!senhaUsuario) {
+  <div class="card p-4 mb-4">
+    <h2>{{ editingId === null ? 'Cadastrar usuário' : 'Editar usuário' }}</h2>
+    <form [formGroup]="form" (ngSubmit)="salvar()">
+      <label class="form-label" for="usuario-nome">Usuário</label>
+      <input id="usuario-nome" class="form-control mb-3" formControlName="username" autocomplete="off">
+      @if (editingId === null) {
+        <label class="form-label" for="usuario-senha">Senha inicial (8 a 72 caracteres)</label>
+        <input id="usuario-senha" class="form-control mb-3" type="password" formControlName="password" autocomplete="new-password">
+      }
+      <label class="form-label" for="usuario-papel">Permissão</label>
+      <select id="usuario-papel" class="form-select mb-3" formControlName="papel"><option value="USER">USER</option><option value="ADMIN">ADMIN</option></select>
+      @if (editingId !== null) { <label class="d-block mb-3"><input type="checkbox" formControlName="ativo"> Usuário ativo</label> }
+      @if (form.invalid && form.touched) { <p class="text-danger" role="alert">Preencha o usuário e uma senha válida para novos cadastros.</p> }
+      <button class="btn-finance-primary" type="submit" [disabled]="saving">{{ saving ? 'Salvando…' : 'Salvar' }}</button>
+      <button class="btn-finance-secondary ms-2" type="button" (click)="novo()" [disabled]="saving">Novo / cancelar edição</button>
+    </form>
+  </div>
+  }
+  @if (senhaUsuario; as user) {
+    <form class="card p-4 mb-4" [formGroup]="senhaForm" (ngSubmit)="salvarSenha()">
+      <h2>Alterar senha de {{ user.username }}</h2>
+      <dl data-testid="senha-destinatario" class="mb-3">
+        <dt>Usuário selecionado</dt><dd>{{ user.username }} (ID {{ user.id }})</dd>
+        <dt>Permissão</dt><dd>{{ user.papel }}</dd>
+        <dt>Status</dt><dd>{{ user.ativo ? 'Ativo' : 'Inativo' }}</dd>
+      </dl>
+      <label for="nova-senha">Nova senha (8 a 72 caracteres)</label>
+      <input id="nova-senha" class="form-control mb-3" type="password" formControlName="password" autocomplete="new-password">
+      <button class="btn-finance-primary" [disabled]="saving || senhaForm.invalid">Alterar senha</button>
+      <button type="button" class="btn-finance-secondary mt-2" [disabled]="saving" (click)="senhaUsuario = null; senhaForm.reset()">Cancelar</button>
+    </form>
+  }
+  @if (loading) { <p role="status">Carregando usuários…</p> }
+  <div class="table-responsive"><table class="table"><thead><tr><th>Usuário</th><th>Permissão</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>@for (user of usuarios; track user.id) {
+      <tr><td>{{ user.username }}</td><td>{{ user.papel }}</td><td>{{ user.ativo ? 'Ativo' : 'Inativo' }}</td><td>
+        <button class="btn-finance-secondary" (click)="editar(user)" [disabled]="saving">Editar</button>
+        <button class="btn-finance-secondary ms-2" (click)="prepararSenha(user)" [disabled]="saving">Alterar senha</button>
+      </td></tr>
+    } @empty { <tr><td colspan="4">Nenhum usuário carregado.</td></tr> }</tbody></table></div>
+  <button class="btn-finance-secondary" (click)="carregar()" [disabled]="loading">Atualizar lista</button>
+</section>

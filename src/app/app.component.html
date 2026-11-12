@@ -1,3 +1,4 @@
+@if (auth.isAuthenticated()) {
 <header class="app-header">
   <div class="app-container app-header__inner">
     <a class="brand" routerLink="/" aria-label="Nexo Capital — visão geral">
@@ -8,6 +9,7 @@
       </span>
     </a>
     <nav class="primary-nav" aria-label="Navegação principal">
+      @if (auth.hasRole('ADMIN')) { <a routerLink="/usuarios" routerLinkActive="is-active">Usuários</a> }
       <a routerLink="/" routerLinkActive="is-active"
          [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">Visão geral</a>
       <a routerLink="/carteira" routerLinkActive="is-active" ariaCurrentWhenActive="page">Carteira</a>
@@ -15,8 +17,15 @@
       <a routerLink="/acoes" routerLinkActive="is-active" ariaCurrentWhenActive="page">Ações</a>
       <a routerLink="/operacoes" routerLinkActive="is-active" ariaCurrentWhenActive="page">Operações</a>
     </nav>
-    <a class="btn-finance-primary header-action" routerLink="/operacoes/nova">Nova operação</a>
+    <div class="header-session">
+      <span>{{ auth.username() }}</span>
+      <a class="btn-finance-primary header-action" routerLink="/operacoes/nova">Nova operação</a>
+      <button class="btn-finance-secondary" type="button" (click)="logout()">Sair</button>
+    </div>
   </div>
 </header>
+}
 <main class="app-main"><router-outlet></router-outlet></main>
+@if (auth.isAuthenticated()) {
 <footer class="app-footer"><div class="app-container">Controle simples e transparente da sua carteira.</div></footer>
+}

@@ -16,9 +16,10 @@
       class="btn-finance-secondary"
       [disabled]="carteiraState.loading"
       (click)="carregarCarteira()">
-      Atualizar
+      Recarregar carteira
     </button>
   </header>
+  <app-atualizar-cotacoes (atualizadas)="carregarCarteira()" />
 
   <section class="portfolio-panel surface-card" aria-labelledby="carteira-titulo">
     @if (carteiraState.loading) {
