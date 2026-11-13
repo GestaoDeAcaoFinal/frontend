@@ -26,7 +26,8 @@ export class HomeComponent implements OnInit {
   carteiraState: RequestState<ResumoCarteira> = initialRequestState<ResumoCarteira>();
   operacoesState: RequestState<OperacaoAcao[]> = initialRequestState<OperacaoAcao[]>();
   selectedAllocationId: number | null = null;
-  private readonly allocationColors = ['#087f68', '#3265bb', '#d48b19', '#8058ad', '#178eaa', '#c55a49', '#354e70', '#84932c'];
+  private readonly allocationColors = ['#253d37', '#728679', '#b69a68', '#8a9c9b', '#6b7972', '#8b7360', '#566c72', '#8c886d'];
+  private allocationPointer: number | null = null;
 
   ngOnInit(): void {
     this.carregarDashboard();
@@ -54,6 +55,27 @@ export class HomeComponent implements OnInit {
 
   selecionarAtivo(id: number): void {
     this.selectedAllocationId = id;
+  }
+
+  iniciarSelecao(event: PointerEvent): void {
+    if (!event.isPrimary || event.button !== 0) return;
+    this.allocationPointer = event.pointerId;
+    this.selecionarPeloPonteiro(event);
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+  moverSelecao(event: PointerEvent): void {
+    if (event.pointerId === this.allocationPointer) this.selecionarPeloPonteiro(event);
+  }
+  finalizarSelecao(event: PointerEvent): void {
+    if (event.pointerId !== this.allocationPointer) return;
+    this.allocationPointer = null;
+    const bar = event.currentTarget as HTMLElement;
+    if (bar.hasPointerCapture(event.pointerId)) bar.releasePointerCapture(event.pointerId);
+  }
+  private selecionarPeloPonteiro(event: PointerEvent): void {
+    const segments = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('[data-asset-id]')];
+    const segment = segments.find(element => event.clientX <= element.getBoundingClientRect().right) ?? segments.at(-1);
+    if (segment) this.selecionarAtivo(Number(segment.dataset['assetId']));
   }
 
   allocationColor(posicao: PosicaoCarteira): string {

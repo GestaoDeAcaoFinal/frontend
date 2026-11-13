@@ -7,13 +7,14 @@ import { AcaoService } from '../../services/acao.service';
   selector: 'app-atualizar-cotacoes',
   template: `
     @if (auth.hasRole('ADMIN')) {
-      <button type="button" class="btn-finance-secondary" [disabled]="atualizando" (click)="atualizar()">
+      <button type="button" class="btn-finance-secondary" [disabled]="atualizando" [attr.aria-busy]="atualizando" (click)="atualizar()">
         {{ atualizando ? 'Atualizando cotações…' : 'Atualizar todas as cotações' }}
       </button>
-      @if (mensagem) { <p role="status" aria-live="polite">{{ mensagem }}</p> }
-      @if (erro) { <p class="text-danger" role="alert">{{ erro }}</p> }
+      @if (mensagem) { <p class="quote-feedback" role="status" aria-live="polite">{{ mensagem }}</p> }
+      @if (erro) { <p class="quote-feedback text-danger" role="alert">{{ erro }}</p> }
     }
-  `
+  `,
+  styles: [':host{display:block;min-width:0;max-width:100%}.quote-feedback{font-size:.8125rem;margin:.75rem 0 0;max-width:28rem;overflow-wrap:anywhere;color:var(--color-muted)}@media(max-width:480px){button{width:100%}}']
 })
 export class AtualizarCotacoesComponent {
   readonly auth = inject(AuthService);

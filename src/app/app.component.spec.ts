@@ -84,6 +84,8 @@ describe('AppComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('a[href="/usuarios"]')).toBeNull();
     expect(host.querySelector('a[href="/operacoes/nova"]')).not.toBeNull();
+    host.querySelector<HTMLButtonElement>('[data-testid=account-menu-trigger]')?.click();
+    fixture.detectChanges();
     expect(host.textContent).toContain('Sair');
   });
   it('redireciona para login quando uma sessão ativa expira', () => {
@@ -96,16 +98,16 @@ describe('AppComponent', () => {
     expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { returnUrl: router.url } });
   });
 
-  it('apresenta a identidade institucional Nexo Capital', () => {
+  it('apresenta a identidade institucional Gestão de Ações', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
 
-    expect(fixture.componentInstance.title).toBe('Nexo Capital');
+    expect(fixture.componentInstance.title).toBe('Gestão de Ações');
     expect(host.querySelector('.brand')?.getAttribute('aria-label'))
-      .toBe('Nexo Capital — visão geral');
-    expect(host.querySelector('.brand__mark')?.textContent?.trim()).toBe('NC');
-    expect(host.querySelector('.brand__name')?.textContent).toContain('Nexo Capital');
+      .toBe('Gestão de Ações — visão geral');
+    expect(host.querySelector('.brand__mark')?.textContent?.trim()).toBe('g·');
+    expect(host.querySelector('.brand__name')?.textContent).toContain('Gestão de Ações');
   });
 
   it('usa superfícies e raios contidos no sistema institucional', () => {
@@ -113,7 +115,7 @@ describe('AppComponent', () => {
     expect(tokens.getPropertyValue('--radius-sm').trim()).toBe('.375rem');
     expect(tokens.getPropertyValue('--radius-lg').trim()).toBe('.625rem');
     expect(tokens.getPropertyValue('--shadow-card').trim())
-      .toBe('0 6px 18px rgba(7, 26, 47, .06)');
+      .toBe('none');
   });
 
   it('renderiza a página inicial na saída de rotas', async () => {
@@ -122,7 +124,7 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Visão consolidada');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Um olhar sobre');
   });
 
   it('renderiza a carteira consolidada na saída de rotas', async () => {
@@ -144,7 +146,7 @@ describe('AppComponent', () => {
       .map(link => link.getAttribute('href'));
 
     expect(nav).not.toBeNull();
-    expect(destinations).toEqual(['/usuarios', '/', '/carteira', '/corretoras', '/acoes', '/operacoes']);
+    expect(destinations).toEqual(['/', '/carteira', '/acoes', '/corretoras', '/operacoes']);
     expect(host.querySelector('a[href="/operacoes/nova"]')?.textContent)
       .toContain('Nova operação');
     expect(host.querySelector('main.app-main router-outlet')).not.toBeNull();
@@ -154,13 +156,14 @@ describe('AppComponent', () => {
     const mediaRules = Array.from(document.styleSheets)
       .flatMap(sheet => Array.from(sheet.cssRules))
       .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule);
-    const mobileRule = mediaRules.find(rule => rule.conditionText === '(max-width: 760px)');
+    const mobileRules = mediaRules.filter(rule => rule.conditionText === '(max-width: 760px)');
+    const mobileRule = mobileRules[0];
 
     expect(mobileRule).toBeDefined();
     if (!mobileRule) return;
 
-    const originalMedia = mobileRule.media.mediaText;
-    mobileRule.media.mediaText = 'all';
+    const originalMedia = mobileRules.map(rule => rule.media.mediaText);
+    mobileRules.forEach(rule => rule.media.mediaText = 'all');
 
     const pageShell = document.createElement('div');
     pageShell.className = 'page-shell';
@@ -178,8 +181,8 @@ describe('AppComponent', () => {
 
     try {
       expect(pageShell.getBoundingClientRect().width)
-        .toBeCloseTo(Math.min(document.documentElement.clientWidth - 16, 1180), 0);
-      expect(getComputedStyle(pageShell).paddingTop).toBe('20px');
+        .toBeCloseTo(Math.min(document.documentElement.clientWidth - 32, 1180), 0);
+      expect(getComputedStyle(pageShell).paddingTop).toBe('28px');
       expect(getComputedStyle(listToolbar).flexDirection).toBe('column');
       expect(getComputedStyle(listToolbar).alignItems).toBe('stretch');
       expect(getComputedStyle(primaryAction).width).toBe(getComputedStyle(listToolbar).width);
@@ -188,7 +191,7 @@ describe('AppComponent', () => {
       expect(getComputedStyle(formAction).width).toBe(getComputedStyle(formActions).width);
     } finally {
       pageShell.remove();
-      mobileRule.media.mediaText = originalMedia;
+      mobileRules.forEach((rule, index) => rule.media.mediaText = originalMedia[index]);
     }
   });
 

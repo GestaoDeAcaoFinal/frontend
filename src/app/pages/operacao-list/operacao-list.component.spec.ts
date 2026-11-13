@@ -86,16 +86,16 @@ describe('OperacaoListComponent', () => {
     expect(host.querySelector('[role="group"][aria-label="Filtros de operações"]')).not.toBeNull();
     const table = host.querySelector('[aria-labelledby="historico-operacoes"] table.finance-table') as HTMLTableElement;
     expect(table.classList).toContain('table-hover');
-    expect(getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()).toBe('#f4f8fa');
+    expect(getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()).toBe('#edf0e8');
     expect(table.querySelector('thead th')?.textContent?.trim()).toBe('ID');
     const firstId = table.querySelector('tbody td') as HTMLTableCellElement;
     expect(firstId.classList).toContain('numeric');
     expect(firstId.textContent?.trim()).toBe('4');
     expect(host.querySelector('.trade-badge')?.textContent).toContain('COMPRA');
     expect(getComputedStyle(host.querySelector('.value-positive') as HTMLElement).color)
-      .toBe('rgb(4, 120, 87)');
+      .toBe('rgb(33, 99, 72)');
     expect(getComputedStyle(host.querySelector('.value-negative') as HTMLElement).color)
-      .toBe('rgb(180, 35, 24)');
+      .toBe('rgb(161, 47, 44)');
   });
 
   it('mantém operações independente do resumo da carteira', () => {

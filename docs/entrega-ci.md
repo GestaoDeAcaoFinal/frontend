@@ -33,7 +33,9 @@ Ao atualizar o contrato, valide os dois projetos em conjunto e atualize o SHA co
 
 ## Evidências e limites
 
-Na validação local desta entrega, o backend teve 140 testes aprovados e cobertura validada; o frontend teve 148 testes aprovados e build de produção abaixo do orçamento inicial de 500 kB. Os nove testes E2E passaram. O teste das imagens confirmou proxy Nginx, login, proteção da API, restrição ADMIN/USER, revogação de sessões, proteção do último ADMIN e navegação direta da SPA. O caminho de falha ao iniciar um container também teve a limpeza verificada.
+Na validação local da entrega de 12/11/2026, o backend teve 140 testes aprovados e cobertura validada; o frontend teve 148 testes aprovados e build de produção abaixo do orçamento inicial de 500 kB. Os nove testes E2E passaram. O teste das imagens confirmou proxy Nginx, login, proteção da API, restrição ADMIN/USER, revogação de sessões, proteção do último ADMIN e navegação direta da SPA. O caminho de falha ao iniciar um container também teve a limpeza verificada.
+
+O [redesign de 13/11/2026](redesign-portfolio-studio.md) foi validado em execução local, com 157 testes, dez cenários E2E e build inicial de 483,38 kB. As imagens da validação anterior não incluem o redesign; para usá-lo no Docker, reconstrua a imagem do frontend a partir do código atualizado.
 
 Esses resultados locais não representam uma execução no GitHub Actions. A validação remota depende da publicação dos commits, começando pelo backend. O workflow integrado usa dados fictícios e provedor simulado; ele não comprova disponibilidade, credenciais ou cobertura de tickers dos provedores reais de cotações.
 

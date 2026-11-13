@@ -6,6 +6,8 @@ Contratos e permissões atuais: [referência da API](docs/contratos-atuais.md).
 
 Automação de testes, validação Docker e ordem de publicação: [entrega e CI](docs/entrega-ci.md).
 
+Interface aprovada, estilos compartilhados, responsividade e confirmação de operações: [Portfolio Studio](docs/redesign-portfolio-studio.md).
+
 Requisitos: Node.js `^20.19.0`, `^22.12.0` ou `>=24.0.0`, dependências do
 `package-lock.json`, Java 17, Maven e PostgreSQL local.
 Configure o `.env` do backend a partir do exemplo do próprio backend, sem versionar credenciais.

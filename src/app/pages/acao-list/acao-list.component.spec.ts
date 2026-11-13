@@ -103,11 +103,11 @@ describe('AcaoListComponent', () => {
     expect(host.querySelector('a.btn-finance-primary')).not.toBeNull();
     const table = host.querySelector('table.finance-table') as HTMLTableElement;
     expect(table.classList).toContain('table-hover');
-    expect(getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()).toBe('#f4f8fa');
-    expect(table.querySelector('thead th')?.textContent?.trim()).toBe('ID');
+    expect(getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()).toBe('#edf0e8');
+    expect(table.querySelector('thead th')?.textContent?.trim()).toBe('Ativo / empresa');
     const idCell = table.querySelector('tbody td') as HTMLTableCellElement;
-    expect(idCell.classList).toContain('numeric');
-    expect(idCell.textContent?.trim()).toBe('1');
+    expect(idCell.querySelector('.ticker-badge')).not.toBeNull();
+    expect(idCell.textContent).toContain('PETR4');
   });
 
   it('separa mercado e moeda da cotação internacional', () => {

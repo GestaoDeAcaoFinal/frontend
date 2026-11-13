@@ -9,18 +9,29 @@ import { initialRequestState, RequestState, toErrorState, toLoadingState, toSucc
 import { AcaoService } from '../../services/acao.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { AtualizarCotacoesComponent } from './atualizar-cotacoes.component';
+import { LucideAngularModule, Search, ChevronDown, RefreshCw, Plus } from 'lucide-angular';
 
 type SearchCriterion = 'id' | 'ticker';
-@Component({ selector: 'app-acao-list', imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, RouterLink, AtualizarCotacoesComponent], templateUrl: './acao-list.component.html', styleUrl: './acao-list.component.css' })
+@Component({ selector: 'app-acao-list', imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, RouterLink, AtualizarCotacoesComponent, LucideAngularModule], templateUrl: './acao-list.component.html', styleUrl: './acao-list.component.css' })
 export class AcaoListComponent implements OnInit {
+  readonly icons = { Search, ChevronDown, RefreshCw, Plus };
   readonly auth = inject(AuthService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly acaoService = inject(AcaoService);
   readonly searchForm = this.formBuilder.nonNullable.group({ criterio: this.formBuilder.nonNullable.control<SearchCriterion>('id'), valor: ['', Validators.required] });
+  readonly filtroForm = this.formBuilder.nonNullable.group({ texto: '', mercado: '' });
+  readonly detalhesAbertos = new Set<number>();
   listState: RequestState<Acao[]> = initialRequestState<Acao[]>();
   searchState: RequestState<Acao> = initialRequestState<Acao>();
   readonly updating = new Set<number>();
   readonly updateErrors: Record<number, ApiError> = {};
+  get mercadosDisponiveis(): string[] { return [...new Set((this.listState.data ?? []).map(acao => acao.mercado).filter((mercado): mercado is string => !!mercado))].sort(); }
+  get acoesFiltradas(): Acao[] {
+    const { texto, mercado } = this.filtroForm.getRawValue();
+    const pesquisa = texto.trim().toLocaleLowerCase('pt-BR');
+    return (this.listState.data ?? []).filter(acao => (!mercado || acao.mercado === mercado) && (!pesquisa || `${acao.ticker} ${acao.nomeEmpresa ?? ''}`.toLocaleLowerCase('pt-BR').includes(pesquisa)));
+  }
+  alternarDetalhes(id: number): void { if (this.detalhesAbertos.has(id)) this.detalhesAbertos.delete(id); else this.detalhesAbertos.add(id); }
   ngOnInit(): void { this.carregarAcoes(); }
   carregarAcoes(): void {
     this.listState = toLoadingState(this.listState);

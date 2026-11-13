@@ -36,7 +36,8 @@ async function trade(page: Page, type: 'Compra' | 'Venda', quantity: number, pri
   await page.getByLabel(type, { exact: true }).check();
   await page.getByLabel('Quantidade', { exact: true }).fill(String(quantity));
   await page.getByLabel(type === 'Compra' ? 'Preço de compra' : 'Preço de venda', { exact: true }).fill(String(price));
-  await page.getByRole('button', { name: 'Salvar operação', exact: true }).click();
+  await page.getByRole('button', { name: 'Revisar operação', exact: true }).click();
+  await page.getByRole('button', { name: type === 'Compra' ? 'Confirmar compra' : 'Confirmar venda', exact: true }).click();
 }
 
 test.beforeEach(async ({ request }) => {
@@ -126,8 +127,10 @@ test('venda respeita saldo, preserva formulário após erro e atualiza a posiç�
   await trade(page, 'Venda', 11, 30);
   await expect(page.getByRole('alert')).toContainText('excede a posição disponível');
   await expect(page.getByLabel('Quantidade', { exact: true })).toHaveValue('11');
+  await page.getByRole('button', { name: 'Voltar e editar', exact: true }).click();
   await page.getByLabel('Quantidade', { exact: true }).fill('4');
-  await page.getByRole('button', { name: 'Salvar operação', exact: true }).click();
+  await page.getByRole('button', { name: 'Revisar operação', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirmar venda', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Operação registrada', exact: true })).toBeVisible();
   await page.goto('/carteira');
   await expect(page.getByTestId('posicao-PETR4').locator('td').nth(1)).toHaveText('6');
@@ -180,6 +183,30 @@ test('ADMIN cadastra ação pelo formulário com cotação obtida pelo backend',
   await expect(page.locator('.result-card')).toContainText('ROXO34');
   const catalog = await (await request.get(`${API}/acoes`, { headers: headers(adminToken) })).json();
   expect(catalog.find((stock: { ticker: string }) => stock.ticker === 'ROXO34')?.cotacaoAtual).toBe(30);
+});
+
+test('revisão preserva preço fracionário, total e foco antes de registrar no backend', async ({ page, request }) => {
+  await login(page, account.username);
+  await page.goto('/operacoes/nova');
+  await page.getByLabel('Ação', { exact: true }).selectOption({ label: 'PETR4 — Empresa E2E PETR4' });
+  await page.getByLabel('Quantidade', { exact: true }).fill('100');
+  await page.getByLabel('Preço de compra', { exact: true }).fill('35.125');
+  await page.getByRole('button', { name: 'Revisar operação', exact: true }).click();
+  await expect(page.locator('.operation-review')).toContainText('35,125');
+  await expect(page.getByTestId('review-total')).toContainText('3.512,50');
+  await expect(page.getByRole('heading', { name: 'Confira sua operação.', exact: true })).toBeFocused();
+  await page.getByTestId('editar-operacao').click();
+  await expect(page.getByLabel('Ação', { exact: true })).toBeFocused();
+  await page.getByRole('button', { name: 'Revisar operação', exact: true }).click();
+  await page.getByTestId('confirmar-operacao').click();
+  await expect(page.getByRole('heading', { name: 'Operação registrada', exact: true })).toBeFocused();
+  const ownerToken = await tokenFor(request, account.username);
+  const operations = await (await request.get(`${API}/operacoes`, { headers: headers(ownerToken) })).json();
+  expect(operations).toHaveLength(1);
+  expect(operations[0].precoUnitario).toBe(35.125);
+  expect(operations[0].valorTotal).toBe(3512.5);
+  await page.getByRole('button', { name: 'Nova operação', exact: true }).click();
+  await expect(page.getByLabel('Ação', { exact: true })).toBeFocused();
 });
 
 test('distribuição interativa permanece utilizável em desktop e celular', async ({ page, request }, testInfo) => {

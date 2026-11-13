@@ -1,17 +1,17 @@
 <div class="page-shell home-page">
   <section class="hero-panel" aria-labelledby="home-title">
-    <p class="eyebrow">RESUMO EXECUTIVO</p>
-    <h1 id="home-title">Visão consolidada dos seus investimentos</h1>
-    <p>Acompanhe o patrimônio, a composição da carteira e as movimentações mais recentes.</p>
+    <p class="eyebrow">SEU PORTFÓLIO, EM PERSPECTIVA</p>
+    <h1 id="home-title">Um olhar sobre o que você constrói.</h1>
+    <p>Posições atuais, composição e movimentos. Tudo no seu ritmo.</p>
     <div class="hero-actions">
-      <a class="btn-finance-primary" routerLink="/operacoes/nova">Registrar operação</a>
-      <a class="btn-finance-secondary" routerLink="/carteira">Abrir carteira</a>
+      <a class="btn-finance-primary" routerLink="/operacoes/nova">Nova operação</a>
     </div>
   </section>
 
   <section class="dashboard-section" aria-labelledby="dashboard-title">
+    <div class="dashboard-controls">
     <div class="dashboard-heading">
-      <div>
+      <div class="visually-hidden">
         <p class="eyebrow">VISÃO CONSOLIDADA</p>
         <h2 id="dashboard-title">Resumo da carteira</h2>
       </div>
@@ -25,6 +25,7 @@
     </div>
 
     <app-atualizar-cotacoes (atualizadas)="carregarDashboard()" />
+    </div>
 
     @if ((carteiraState.loading && !carteiraState.data) || (operacoesState.loading && !operacoesState.data)) {
       <div class="status-panel surface-card" role="status" aria-live="polite">
@@ -49,19 +50,19 @@
           <small>Patrimônio marcado pelas cotações atuais</small>
         </article>
         <article class="metric-card surface-card">
-          <span>Custo investido</span>
+          <span>Custo das posições</span>
           <strong class="numeric" data-testid="custo-total">{{ carteira.custoTotalCarteira | currency:'BRL' }}</strong>
-          <small>Capital líquido aplicado nas posições</small>
+          <small>Custo das posições abertas</small>
         </article>
         <article class="metric-card surface-card" [class.metric-card--positive]="resultadoCarteira >= 0" [class.metric-card--negative]="resultadoCarteira < 0">
           <span>Resultado nominal</span>
           <strong class="numeric" data-testid="resultado">{{ resultadoCarteira | currency:'BRL' }}</strong>
-          <small>Diferença entre valor atual e custo</small>
+          <small>Valor atual menos custo das posições abertas</small>
         </article>
         <article class="metric-card surface-card">
-          <span>Ações em posse</span>
-          <strong class="numeric" data-testid="quantidade-total">{{ carteira.quantidadeTotal }}</strong>
-          <small>{{ carteira.posicoes.length }} ativo(s) na carteira</small>
+          <span>Ativos em carteira</span>
+          <strong class="numeric" data-testid="numero-posicoes">{{ carteira.posicoes.length }}</strong>
+          <small><span data-testid="quantidade-total">{{ carteira.quantidadeTotal }}</span> unidades em posse</small>
         </article>
       </div>
 
@@ -69,8 +70,8 @@
         <article class="dashboard-card surface-card" aria-labelledby="allocation-title">
           <header class="dashboard-card__header">
             <div>
-              <p class="eyebrow">COMPOSIÇÃO</p>
-              <h3 id="allocation-title">Distribuição por ativo</h3>
+              <p class="eyebrow">01 / COMPOSIÇÃO</p>
+              <h3 id="allocation-title">Cada ativo, seu espaço.</h3>
             </div>
             <a routerLink="/carteira">Ver carteira</a>
           </header>
@@ -85,9 +86,10 @@
                 <span>Valor atual da carteira</span>
                 <strong class="numeric">{{ carteira.valorAtualCarteira | currency:'BRL' }}</strong>
               </div>
-              <div class="allocation-bar" role="group" aria-label="Participação dos ativos no valor da carteira">
+              <div class="allocation-bar" role="group" aria-label="Participação dos ativos no valor da carteira" (pointerdown)="iniciarSelecao($event)" (pointermove)="moverSelecao($event)" (pointerup)="finalizarSelecao($event)" (pointercancel)="finalizarSelecao($event)" (lostpointercapture)="finalizarSelecao($event)">
                 @for (posicao of posicoesDistribuicao; track posicao.acaoId) {
                   <button type="button" class="allocation-segment"
+                    [attr.data-asset-id]="posicao.acaoId"
                     [class.is-selected]="selectedAllocation?.acaoId === posicao.acaoId"
                     [style.width.%]="allocationWidth(posicao)"
                     [style.background-color]="allocationColor(posicao)"
@@ -134,8 +136,8 @@
         <article class="dashboard-card surface-card" aria-labelledby="recent-title">
           <header class="dashboard-card__header">
             <div>
-              <p class="eyebrow">MOVIMENTAÇÕES</p>
-              <h3 id="recent-title">Operações recentes</h3>
+              <p class="eyebrow">02 / MOVIMENTAÇÕES</p>
+              <h3 id="recent-title">Os últimos registros.</h3>
             </div>
             <a routerLink="/operacoes">Ver histórico</a>
           </header>
@@ -167,5 +169,6 @@
       </div>
     }
   </section>
+  <p class="home-currency-note">Valores da carteira consolidados em BRL. Ativos internacionais seguem a conversão pelo câmbio atual; o resultado nominal não representa o retorno histórico completo em reais.</p>
 
 </div>

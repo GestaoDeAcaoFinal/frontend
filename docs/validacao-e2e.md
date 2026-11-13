@@ -1,6 +1,6 @@
 # Validação ponta a ponta
 
-Última consolidação em 12/11/2026: **140 testes do backend, 148 testes do frontend e 9 cenários E2E aprovados**, com build de produção concluído. A execução E2E foi feita com Chrome local; screenshots desktop/celular foram conferidos com dados sintéticos.
+Última consolidação do frontend em 13/11/2026: **157 testes e 10 cenários E2E aprovados**, com build de produção de 483,38 kB. A execução E2E foi feita com Chrome local; telas desktop/celular foram conferidas com dados sintéticos. O backend não foi alterado nesta etapa; sua última suíte completa, em 12/11/2026, teve 140 testes aprovados.
 
 Esta suíte usa o Angular e o Spring Boot reais, com dados sintéticos e banco H2 em memória. As APIs de cotação são simuladas por um servidor HTTP do launcher Java; não há uso de chaves reais ou requisições financeiras externas.
 
@@ -35,11 +35,12 @@ O comando inicia e encerra seus servidores automaticamente. Portas reservadas: A
 2. Último ADMIN não pode ser rebaixado ou desativado pela interface.
 3. Troca de senha identifica o usuário, invalida o token anterior e permite novo login.
 4. Compra fica somente na carteira do proprietário, inclusive perante outra conta ADMIN. Histórico, filtros e consulta por ID também são protegidos; outra conta não pode vender a posição.
-5. Venda acima do saldo mantém o formulário; venda permitida atualiza quantidade e preço médio.
+5. Venda acima do saldo preserva os dados revisados; Voltar e editar permite corrigir a quantidade e revisar/confirmar novamente. Venda permitida atualiza quantidade e preço médio.
 6. Mudança de perfil/status encerra acesso; reativação não revive token antigo.
 7. Atualização geral mostra falha parcial de autenticação do provedor sem encerrar o login do investidor; os registros do simulador confirmam as chamadas HTTP.
 8. Cadastro de ação pelo formulário obtém a cotação e persiste no backend.
-9. Distribuição interativa com três ativos em desktop/celular, com screenshots e verificação de ausência de rolagem horizontal em 390 px.
+9. Preço fracionário (35,125 × 100 = 3.512,50) preservado na revisão e no backend, com foco correto ao revisar, editar, concluir e iniciar outra operação.
+10. Distribuição interativa com três ativos em desktop/celular, com screenshots e verificação de ausência de rolagem horizontal em 390 px.
 
 ## Sessões
 

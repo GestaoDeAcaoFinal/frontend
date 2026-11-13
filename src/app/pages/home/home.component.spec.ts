@@ -96,7 +96,7 @@ describe('HomeComponent', () => {
 
   it('apresenta indicadores financeiros obtidos da API', () => {
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('h1')?.textContent).toContain('Visão consolidada');
+    expect(host.querySelector('h1')?.textContent).toContain('Um olhar sobre');
     expect(host.querySelector('[data-testid="valor-atual"]')?.textContent).toMatch(/R\$\s*420,00/);
     expect(host.querySelector('[data-testid="custo-total"]')?.textContent).toMatch(/R\$\s*360,00/);
     expect(host.querySelector('[data-testid="resultado"]')?.textContent).toMatch(/R\$\s*60,00/);
@@ -244,7 +244,7 @@ describe('HomeComponent', () => {
 
   it('oferece acesso direto à carteira e ao extrato sem duplicar cadastros', () => {
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('h1')?.textContent).toContain('Visão consolidada');
+    expect(host.querySelector('h1')?.textContent).toContain('Um olhar sobre');
     expect(host.querySelector('a[href="/carteira"]')).not.toBeNull();
     expect(host.querySelector('a[href="/operacoes"]')).not.toBeNull();
     expect(host.querySelector('.quick-grid')).toBeNull();

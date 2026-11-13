@@ -150,6 +150,6 @@ describe('CorretoraListComponent', () => {
     expect(host.querySelector('a.btn-finance-primary')).not.toBeNull();
     const table = host.querySelector('table.finance-table') as HTMLTableElement;
     expect(table.classList).toContain('table-hover');
-    expect(getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()).toBe('#f4f8fa');
+    expect(getComputedStyle(table).getPropertyValue('--bs-table-hover-bg').trim()).toBe('#edf0e8');
   });
 });
