@@ -45,6 +45,36 @@ test.beforeEach(async ({ request }) => {
   account = await createAccount(request);
 });
 
+test('cadastro, busca, duplicidade e cotação preservam BRK.A e BRK.B de ponta a ponta', async ({ page, request }) => {
+  test.setTimeout(90_000);
+  await login(page, ADMIN.username, ADMIN.password);
+  for (const ticker of ['BRK.A', 'BRK.B']) {
+    await page.goto('/acoes/nova');
+    await page.getByLabel('Ticker', { exact: true }).fill(` ${ticker.toLowerCase()} `);
+    const corretora = (await (await request.get(`${API}/corretoras`, { headers: headers(adminToken) })).json())[0];
+    await page.getByLabel('Corretora', { exact: true }).selectOption({ label: corretora.razaoSocial || corretora.cnpj });
+    await page.getByRole('button', { name: 'Salvar ação', exact: true }).click();
+    await expect(page.locator('.result-card')).toContainText(ticker);
+    await expect(page.locator('.result-card')).toContainText('US$');
+    const response = await request.get(`${API}/acoes/ticker/${ticker.toLowerCase()}`, { headers: headers(adminToken) });
+    expect(response.status()).toBe(200);
+    const asset = await response.json();
+    expect(asset.ticker).toBe(ticker);
+    expect(asset.mercado).toBe('EUA');
+    expect((await request.put(`${API}/acoes/${asset.id}/atualizar-cotacao`, { headers: headers(adminToken), data: {} })).status()).toBe(200);
+    await page.goto('/acoes');
+    await page.locator('details summary').click();
+    await page.getByLabel('Consultar por', { exact: true }).selectOption('ticker');
+    await page.getByLabel('Valor', { exact: true }).fill(ticker.toLowerCase());
+    await page.getByRole('button', { name: 'Consultar', exact: true }).click();
+    await expect(page.locator('.search-result')).toContainText(ticker);
+    const duplicate = await request.post(`${API}/acoes`, { headers: headers(adminToken), data: { ticker: ` ${ticker.toLowerCase()} `, corretoraId: corretora.id } });
+    expect(duplicate.status()).toBe(409);
+    const all = await (await request.get(`${API}/acoes`, { headers: headers(adminToken) })).json();
+    expect(all.filter((item: { ticker: string }) => item.ticker === ticker)).toHaveLength(1);
+  }
+});
+
 test('login, rota protegida e permissão USER são aplicados no navegador e na API', async ({ page, request }) => {
   await page.goto('/carteira');
   await expect(page).toHaveURL(/\/login\?returnUrl=/);
@@ -72,6 +102,62 @@ test('interface impede rebaixar ou desativar o último ADMIN', async ({ page, re
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('administrador ativo');
   expect((await request.get(`${API}/api/usuarios`, { headers: headers(adminToken) })).status()).toBe(200);
+});
+
+test('histórico mantém filtros e detalhes acessíveis no celular e no desktop', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page, account.username);
+  await trade(page, 'Compra', 3, 35.125);
+  await expect(page.getByRole('heading', { name: 'Operação registrada', exact: true })).toBeVisible();
+  await page.goto('/operacoes');
+  await expect(page.getByRole('heading', { name: 'Histórico de operações', exact: true })).toBeVisible();
+  await page.getByLabel('Pesquisar nas operações', { exact: true }).fill('petr');
+  await expect(page.locator('.record-count')).toContainText('1 de 1');
+  const detalhes = page.getByRole('button', { name: /Detalhes da operação \d+ de PETR4/ });
+  await detalhes.click();
+  await expect(detalhes).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.history-detail-row:visible')).toContainText('35,125');
+  await expect(page.locator('.history-detail-row:visible')).toContainText('Quantidade');
+  for (const width of [320, 390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expect(detalhes).toBeVisible();
+    if (width === 390 || width === 1280) await page.screenshot({ path: testInfo.outputPath(`historico-${width}.png`), fullPage: true });
+  }
+  await page.getByLabel('Pesquisar nas operações', { exact: true }).fill('inexistente');
+  await expect(page.getByText('Nenhuma operação corresponde aos filtros.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Limpar filtros', exact: true }).click();
+  await expect(page.locator('.record-count')).toContainText('1 de 1');
+  await page.getByText('Consulta direta por ID da operação', { exact: true }).click();
+  await expect(page.getByLabel('Identificador', { exact: true })).toBeVisible();
+});
+
+test('telas-base e navegação respondem a desktop, tablet e celular nos dois perfis', async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
+  for (const usuario of [{ username: ADMIN.username, password: ADMIN.password }, account]) {
+    await login(page, usuario.username, usuario.password);
+    for (const width of [320, 390, 768, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const path of ['/', '/acoes', '/operacoes/nova', '/operacoes']) {
+        await page.goto(path);
+        await expect(page.locator('h1')).toBeVisible();
+        await page.evaluate(() => document.fonts.ready);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        const link = page.getByRole('navigation', { name: 'Navegação principal', exact: true }).getByRole('link', { name: 'Operações', exact: true });
+        await link.focus();
+        await expect(link).toBeFocused();
+        await expect(link).toBeInViewport();
+        if (usuario.username === ADMIN.username && [390, 1280].includes(width)) await page.screenshot({ path: testInfo.outputPath(`${width}-${path.replaceAll('/', '_')}.png`), fullPage: true });
+      }
+      await page.getByTestId('account-menu-trigger').click();
+      if (usuario.username === ADMIN.username) await expect(page.getByRole('link', { name: 'Administração de usuários', exact: true })).toBeVisible();
+      else await expect(page.getByRole('link', { name: 'Administração de usuários', exact: true })).toHaveCount(0);
+      await page.keyboard.press('Escape');
+      await expect(page.getByTestId('account-menu-trigger')).toBeFocused();
+      await expect(page.locator('.account-menu')).toHaveCount(0);
+    }
+    await page.getByTestId('account-menu-trigger').click(); await page.getByTestId('logout').click();
+  }
 });
 
 test('troca de senha identifica o alvo e invalida sua sessão anterior', async ({ page, request }) => {

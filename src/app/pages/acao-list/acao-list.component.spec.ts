@@ -68,6 +68,12 @@ describe('AcaoListComponent', () => {
     service.buscarPorTicker.and.returnValue(of(acao)); component.searchForm.setValue({ criterio: 'ticker', valor: ' petr4 ' }); component.buscar();
     expect(service.buscarPorTicker).toHaveBeenCalledOnceWith('PETR4'); expect(component.searchState.data).toEqual(acao);
   });
+  it('consulta classe com ponto sem mudar o símbolo', () => {
+    service.buscarPorTicker.and.returnValue(of({ ...acao, ticker: 'BRK.B' }));
+    component.searchForm.setValue({ criterio: 'ticker', valor: ' brk.b ' });
+    component.buscar();
+    expect(service.buscarPorTicker).toHaveBeenCalledOnceWith('BRK.B');
+  });
   it('atualiza a ação visível e preserva dados se provedor falhar', () => {
     component.listState.data = [acao]; const atualizada = { ...acao, cotacaoAtual: 36 };
     service.atualizarCotacao.and.returnValue(of(atualizada)); component.atualizarCotacao(acao); expect(component.listState.data?.[0].cotacaoAtual).toBe(36);

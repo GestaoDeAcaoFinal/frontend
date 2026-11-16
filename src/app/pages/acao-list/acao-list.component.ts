@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ApiError } from '../../core/api/api-error.interceptor';
+import { TICKER_PATTERN } from '../../core/api/ticker-format';
 import { Acao } from '../../core/api/api.models';
 import { initialRequestState, RequestState, toErrorState, toLoadingState, toSuccessState } from '../../core/state/request-state';
 import { AcaoService } from '../../services/acao.service';
@@ -42,7 +43,7 @@ export class AcaoListComponent implements OnInit {
     if (!valor) { this.invalidSearch({ required: true }); return; }
     let request$: Observable<Acao>;
     if (criterio === 'id') { if (!/^[1-9]\d*$/.test(valor)) { this.invalidSearch({ positiveInteger: true }); return; } request$ = this.acaoService.buscarPorId(Number(valor)); }
-    else { if (!/^(?=.*[A-Za-z])[A-Za-z0-9]{1,12}$/.test(valor)) { this.invalidSearch({ ticker: true }); return; } request$ = this.acaoService.buscarPorTicker(valor.toUpperCase()); }
+    else { if (!TICKER_PATTERN.test(valor)) { this.invalidSearch({ ticker: true }); return; } request$ = this.acaoService.buscarPorTicker(valor.toUpperCase()); }
     this.searchState = toLoadingState(this.searchState);
     request$.subscribe({ next: data => this.searchState = toSuccessState(this.searchState, data), error: (e: ApiError) => this.searchState = toErrorState(this.searchState, e) });
   }

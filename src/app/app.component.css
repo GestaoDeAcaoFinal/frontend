@@ -5,7 +5,7 @@
 .brand__mark{font-size:2.5rem;letter-spacing:-.3rem;line-height:1;margin-right:.35rem}.brand__mark span{color:var(--color-gold)}
 .brand strong{display:block;font-size:.9375rem;font-weight:600}.brand small{display:block;color:var(--color-muted);font-size:.75rem;margin-top:.15rem}
 .primary-nav{display:flex;align-self:stretch;align-items:stretch;gap:1.25rem;margin-inline:auto;min-width:0}
-.primary-nav a{display:flex;align-items:center;flex:0 0 auto;font-size:.8125rem;white-space:nowrap;color:var(--color-muted);text-decoration:none;border-bottom:2px solid transparent;padding-block:.4rem}
+.primary-nav a{display:flex;align-items:center;flex:0 0 auto;font-size:.8125rem;white-space:nowrap;color:var(--color-muted);text-decoration:none;border-bottom:2px solid transparent;padding-block:.4rem;min-height:44px}
 .primary-nav a:hover{color:var(--color-primary)}.primary-nav a.is-active{color:var(--color-primary);border-bottom-color:var(--color-primary);font-weight:600}
 .header-session{display:flex;align-items:center;gap:1rem;flex-shrink:0}.header-action{font-size:.8125rem;padding:.6rem .8rem}
 .account{position:relative}.account-trigger{display:flex;align-items:center;gap:.6rem;min-height:44px;border:0;background:none;padding:.25rem;color:var(--color-text);text-align:left}

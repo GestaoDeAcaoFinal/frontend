@@ -1,6 +1,6 @@
 # Validação ponta a ponta
 
-Última consolidação do frontend em 13/11/2026: **157 testes e 10 cenários E2E aprovados**, com build de produção de 483,38 kB. A execução E2E foi feita com Chrome local; telas desktop/celular foram conferidas com dados sintéticos. O backend não foi alterado nesta etapa; sua última suíte completa, em 12/11/2026, teve 140 testes aprovados.
+Última consolidação em 16/11/2026: **162 testes Angular e 13 cenários E2E aprovados**, com build de produção de 483,67 kB. Backend: **157 testes aprovados por `mvn verify`**, incluindo os gates de cobertura. E2E executado com Chrome local, Angular/Spring reais, H2 temporário e provedor controlado; cadastro/busca/cotação/duplicidade de BRK.A/BRK.B e navegação ADMIN/USER em 320/390/768/1280 px aprovados. O build de produção também foi conferido em oito telas com APIs interceptadas. Detalhes em [refinamentos de tickers e usabilidade](refinamentos-tickers-usabilidade.md).
 
 Esta suíte usa o Angular e o Spring Boot reais, com dados sintéticos e banco H2 em memória. As APIs de cotação são simuladas por um servidor HTTP do launcher Java; não há uso de chaves reais ou requisições financeiras externas.
 
@@ -41,6 +41,9 @@ O comando inicia e encerra seus servidores automaticamente. Portas reservadas: A
 8. Cadastro de ação pelo formulário obtém a cotação e persiste no backend.
 9. Preço fracionário (35,125 × 100 = 3.512,50) preservado na revisão e no backend, com foco correto ao revisar, editar, concluir e iniciar outra operação.
 10. Distribuição interativa com três ativos em desktop/celular, com screenshots e verificação de ausência de rolagem horizontal em 390 px.
+11. Cadastro de BRK.A/BRK.B pelo formulário, busca por caixa diferente, cotação via Twelve Data controlada e duplicidade com 409, sem retirar o ponto ou criar registros adicionais.
+12. Histórico com pesquisa, vazio, limpar filtros, detalhes e preço fracionário, em 320/390/768/1280 px.
+13. Telas-base e navegação por teclado/menu de conta nos perfis ADMIN/USER, nas mesmas quatro larguras, com capturas desktop/celular.
 
 ## Sessões
 
