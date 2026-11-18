@@ -19,7 +19,7 @@
       Recarregar carteira
     </button>
   </header>
-  <app-atualizar-cotacoes (atualizadas)="carregarCarteira()" />
+  <app-atualizar-cotacoes [bloqueado]="carteiraState.loading" (atualizadas)="carregarCarteira()" />
 
   <section class="portfolio-panel surface-card" aria-labelledby="carteira-titulo">
     @if (carteiraState.loading) {

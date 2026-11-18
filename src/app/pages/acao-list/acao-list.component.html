@@ -6,7 +6,7 @@
   <div class="stock-toolbar" [formGroup]="filtroForm">
     <label class="stock-search" for="stock-filter"><lucide-icon class="ui-icon" [img]="icons.Search" [size]="18" aria-hidden="true"></lucide-icon><span class="visually-hidden">Pesquisar ticker ou empresa</span><input class="form-control" id="stock-filter" type="search" data-testid="stock-filter" formControlName="texto" placeholder="Pesquisar ticker ou empresa"></label>
     <label for="stock-market" class="stock-market"><span class="visually-hidden">Filtrar por mercado</span><select id="stock-market" class="form-select" formControlName="mercado"><option value="">Todos os mercados</option>@for (mercado of mercadosDisponiveis; track mercado) { <option [value]="mercado">{{ mercado }}</option> }</select></label>
-    <app-atualizar-cotacoes (atualizadas)="carregarAcoes()" />
+    <app-atualizar-cotacoes [bloqueado]="listState.loading" (atualizadas)="carregarAcoes()" />
   </div>
   <details class="stock-direct-search">
     <summary>Consulta direta por ID ou ticker</summary>

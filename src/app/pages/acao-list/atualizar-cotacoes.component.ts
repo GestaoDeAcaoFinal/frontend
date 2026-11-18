@@ -1,4 +1,5 @@
-import { Component, EventEmitter, inject, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { AcaoService } from '../../services/acao.service';
@@ -7,7 +8,7 @@ import { AcaoService } from '../../services/acao.service';
   selector: 'app-atualizar-cotacoes',
   template: `
     @if (auth.hasRole('ADMIN')) {
-      <button type="button" class="btn-finance-secondary" [disabled]="atualizando" [attr.aria-busy]="atualizando" (click)="atualizar()">
+      <button type="button" class="btn-finance-secondary" [disabled]="atualizando || bloqueado" [attr.aria-busy]="atualizando" (click)="atualizar()">
         {{ atualizando ? 'Atualizando cotações…' : 'Atualizar todas as cotações' }}
       </button>
       @if (mensagem) { <p class="quote-feedback" role="status" aria-live="polite">{{ mensagem }}</p> }
@@ -19,17 +20,21 @@ import { AcaoService } from '../../services/acao.service';
 export class AtualizarCotacoesComponent {
   readonly auth = inject(AuthService);
   private readonly acoes = inject(AcaoService);
+  private readonly destroyRef = inject(DestroyRef);
+  @Input() bloqueado = false;
   @Output() readonly atualizadas = new EventEmitter<void>();
   atualizando = false;
   mensagem = '';
   erro = '';
 
   atualizar(): void {
-    if (this.atualizando || !this.auth.hasRole('ADMIN')) return;
+    if (this.atualizando || this.bloqueado || !this.auth.hasRole('ADMIN')) return;
     this.atualizando = true;
-    this.mensagem = '';
+    this.mensagem = 'Preparando atualização. As consultas internacionais respeitam o limite do provedor e podem levar cerca de um minuto.';
     this.erro = '';
-    this.acoes.atualizarTodasCotacoes().pipe(finalize(() => this.atualizando = false)).subscribe({
+    this.acoes.atualizarTodasCotacoes((completed, total, ticker) => {
+      this.mensagem = `${completed} de ${total} ações processadas${ticker ? ' · ' + ticker : ''}. As consultas internacionais respeitam o limite do provedor; aguarde.`;
+    }).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.atualizando = false)).subscribe({
       next: resultados => {
         const falhas = resultados.filter(resultado => !resultado.sucesso);
         this.mensagem = resultados.length === 0 ? 'Nenhuma ação cadastrada para atualizar.'

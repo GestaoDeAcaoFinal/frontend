@@ -56,6 +56,18 @@ describe('AcaoService', () => {
 
   afterEach(() => httpTesting.verify());
 
+  it('informa progresso após cada resposta sem emitir resultado final antecipado', async () => {
+    const progress = jasmine.createSpy('progress');
+    const atualizar = service.atualizarTodasCotacoes as (onProgress: (completed: number, total: number, ticker: string) => void) => ReturnType<AcaoService['atualizarTodasCotacoes']>;
+    const result = firstValueFrom(atualizar.call(service, progress));
+    httpTesting.expectOne(`${apiBaseUrl}/acoes`).flush([acao, { ...acao, id: 2, ticker: 'AAPL' }]);
+    httpTesting.expectOne(`${apiBaseUrl}/acoes/1/atualizar-cotacao`).flush(acao);
+    expect(progress).toHaveBeenCalledWith(1, 2, 'PETR4');
+    httpTesting.expectOne(`${apiBaseUrl}/acoes/2/atualizar-cotacao`).flush({}, { status: 503, statusText: 'Service Unavailable' });
+    expect(progress).toHaveBeenCalledWith(2, 2, 'AAPL');
+    expect((await result).map(item => item.sucesso)).toEqual([true, false]);
+  });
+
   it('atualiza todas em sequência e informa falhas parciais sem interromper as demais', async () => {
     const result = firstValueFrom(service.atualizarTodasCotacoes());
     httpTesting.expectOne(`${apiBaseUrl}/acoes`).flush([acao, { ...acao, id: 2, ticker: 'VALE3' }, { ...acao, id: 3, ticker: 'ITUB4' }]);

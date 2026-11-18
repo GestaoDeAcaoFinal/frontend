@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, concatMap, from, map, Observable, of, throwError, toArray } from 'rxjs';
+import { catchError, concatMap, from, map, Observable, of, tap, throwError, toArray } from 'rxjs';
 import { ApiError } from '../core/api/api-error.interceptor';
 
 import { API_BASE_URL } from '../core/api/api-base-url.token';
@@ -45,15 +45,20 @@ export class AcaoService {
     return this.http.put<Acao>(`${this.apiUrl}/${id}/atualizar-cotacao`, {});
   }
 
-  atualizarTodasCotacoes(): Observable<AtualizacaoCotacao[]> {
-    return this.listar().pipe(concatMap(acoes => from(acoes).pipe(
+  atualizarTodasCotacoes(onProgress?: (completed: number, total: number, ticker: string) => void): Observable<AtualizacaoCotacao[]> {
+    return this.listar().pipe(concatMap(acoes => {
+      let concluidas = 0;
+      onProgress?.(0, acoes.length, '');
+      return from(acoes).pipe(
       concatMap(acao => this.atualizarCotacao(acao.id).pipe(
         map(() => ({ ticker: acao.ticker, sucesso: true })),
         catchError((erro: ApiError) => erro.status === 401 || erro.status === 403
           ? throwError(() => erro)
           : of({ ticker: acao.ticker, sucesso: false, erro: erro.message }))
       )),
+      tap(resultado => onProgress?.(++concluidas, acoes.length, resultado.ticker)),
       toArray()
-    )));
+    );
+    }));
   }
 }

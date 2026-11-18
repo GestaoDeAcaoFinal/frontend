@@ -5,6 +5,26 @@ import { AcaoService, AtualizacaoCotacao } from '../../services/acao.service';
 import { AtualizarCotacoesComponent } from './atualizar-cotacoes.component';
 
 describe('AtualizarCotacoesComponent', () => {
+  it('mostra progresso e mantém bloqueio até o fim do lote sem recarga antecipada', () => {
+    const request = new Subject<AtualizacaoCotacao[]>();
+    let notify: ((completed: number, total: number, ticker: string) => void) | undefined;
+    const service = jasmine.createSpyObj('AcaoService', ['atualizarTodasCotacoes']);
+    service.atualizarTodasCotacoes.and.callFake((progress?: typeof notify) => { notify = progress; return request; });
+    TestBed.configureTestingModule({ imports: [AtualizarCotacoesComponent], providers: [
+      { provide: AuthService, useValue: { hasRole: () => true } }, { provide: AcaoService, useValue: service }
+    ] });
+    const fixture = TestBed.createComponent(AtualizarCotacoesComponent);
+    const component = fixture.componentInstance;
+    const emit = spyOn(component.atualizadas, 'emit');
+    component.atualizar();
+    expect(notify).toBeDefined(); notify?.(1, 10, 'AAPL'); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="status"]')?.textContent).toContain('1 de 10');
+    expect(fixture.nativeElement.textContent).toContain('limite');
+    expect(fixture.nativeElement.querySelector('button').disabled).toBeTrue();
+    expect(emit).not.toHaveBeenCalled();
+    request.next([{ ticker: 'AAPL', sucesso: true }]); request.complete(); fixture.detectChanges();
+    expect(component.atualizando).toBeFalse(); expect(emit).toHaveBeenCalledTimes(1);
+  });
   it('bloqueia clique duplicado e informa falhas parciais antes de recarregar os dados', () => {
     const request = new Subject<AtualizacaoCotacao[]>();
     const service = jasmine.createSpyObj('AcaoService', ['atualizarTodasCotacoes']);

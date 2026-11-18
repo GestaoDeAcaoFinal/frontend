@@ -24,7 +24,7 @@
       </button>
     </div>
 
-    <app-atualizar-cotacoes (atualizadas)="carregarDashboard()" />
+    <app-atualizar-cotacoes [bloqueado]="carteiraState.loading" (atualizadas)="carregarDashboard()" />
     </div>
 
     @if ((carteiraState.loading && !carteiraState.data) || (operacoesState.loading && !operacoesState.data)) {

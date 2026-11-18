@@ -318,3 +318,50 @@ test('distribuição interativa permanece utilizável em desktop e celular', asy
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('dashboard-mobile.png'), fullPage: true });
 });
+
+test('nove ativos americanos e câmbio respeitam cota compartilhada e preservam carteira', async ({ page, request }, testInfo) => {
+  test.setTimeout(90_000);
+  const owner = await createAccount(request, 'ADMIN');
+  const token = await tokenFor(request, owner.username);
+  const brokers = await (await request.get(`${API}/corretoras`, { headers: headers(token) })).json();
+  for (const ticker of ['AAPL', 'TSLA', 'MSFT', 'PARA', 'F', 'GOOG', 'BA', 'KO', 'GOOGL']) {
+    const response = await request.post(`${API}/acoes`, { headers: headers(token), data: { ticker, corretoraId: brokers[0].id } });
+    expect(response.status()).toBe(200);
+  }
+  const stocks = await (await request.get(`${API}/acoes`, { headers: headers(token) })).json();
+  const apple = stocks.find((stock: { ticker: string }) => stock.ticker === 'AAPL');
+  expect((await request.post(`${API}/operacoes/comprar/${apple.id}`, { headers: headers(token), params: { quantidade: 2, precoCompra: 80 } })).status()).toBe(200);
+  const before = await (await request.get('http://127.0.0.1:19090/__e2e/stats')).json();
+  await login(page, owner.username);
+  await page.goto('/carteira');
+  await expect(page.getByTestId('posicao-AAPL')).toBeVisible();
+  await expect(page.getByTestId('valor-atual')).toContainText('1.052,63');
+  await page.getByRole('button', { name: 'Atualizar todas as cotações', exact: true }).click();
+  await expect(page.locator('app-atualizar-cotacoes button')).toBeDisabled();
+  await expect(page.locator('app-atualizar-cotacoes [role="status"]')).toContainText('ações processadas');
+  await expect(page.locator('app-atualizar-cotacoes [role="status"]')).toContainText(`${stocks.length - 1} de ${stocks.length} cotações atualizadas.`);
+  await expect(page.getByTestId('posicao-AAPL')).toBeVisible();
+  await expect(page.getByTestId('valor-atual')).toContainText('1.052,63');
+  await expect(page.locator('app-atualizar-cotacoes [role="alert"]')).toContainText('ERRO3');
+  await expect(page.locator('app-atualizar-cotacoes [role="alert"]')).not.toContainText('Twelve Data');
+  const after = await (await request.get('http://127.0.0.1:19090/__e2e/stats')).json();
+  expect(after['TWELVE_RATE_LIMIT_ERRORS'] || 0).toBe(0);
+  expect(after['/quote'] - before['/quote']).toBeGreaterThanOrEqual(9);
+  expect((after['/exchange_rate'] || 0) - (before['/exchange_rate'] || 0)).toBe(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('carteira-quota-390.png'), fullPage: true });
+});
+
+test('429 externo retorna orientação de limite sem encerrar sessão e impede nova chamada durante cooldown', async ({ request }) => {
+  const body = { ticker: 'LIMITE', corretoraId: 1 };
+  const primeira = await request.post(`${API}/acoes`, { headers: headers(adminToken), data: body });
+  expect(primeira.status()).toBe(503);
+  expect((await primeira.json()).detail).toContain('limite de consultas');
+  const antes = await (await request.get('http://127.0.0.1:19090/__e2e/stats')).json();
+  const segunda = await request.post(`${API}/acoes`, { headers: headers(adminToken), data: body });
+  expect(segunda.status()).toBe(503);
+  const depois = await (await request.get('http://127.0.0.1:19090/__e2e/stats')).json();
+  expect(depois['/quote']).toBe(antes['/quote']);
+  expect((await request.get(`${API}/acoes`, { headers: headers(adminToken) })).status()).toBe(200);
+});

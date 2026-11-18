@@ -1,6 +1,6 @@
 # Validação ponta a ponta
 
-Última consolidação em 16/11/2026: **162 testes Angular e 13 cenários E2E aprovados**, com build de produção de 483,67 kB. Backend: **157 testes aprovados por `mvn verify`**, incluindo os gates de cobertura. E2E executado com Chrome local, Angular/Spring reais, H2 temporário e provedor controlado; cadastro/busca/cotação/duplicidade de BRK.A/BRK.B e navegação ADMIN/USER em 320/390/768/1280 px aprovados. O build de produção também foi conferido em oito telas com APIs interceptadas. Detalhes em [refinamentos de tickers e usabilidade](refinamentos-tickers-usabilidade.md).
+Última consolidação em 18/11/2026: **164 testes Angular e 15 cenários E2E aprovados**, com build de produção de 483,67 kB. Backend: **187 testes aprovados por `mvn verify`**, incluindo os gates de cobertura. E2E executado com Chrome local, Angular/Spring reais, H2 temporário e provedor controlado que agora aplica limite compartilhado8 créditos por janela. Cadastro/busca/cotação/duplicidade de BRK.A/BRK.B, navegação ADMIN/USER em320/390/768/1280px e nove ativos americanos+câmbio aprovados. Detalhes em [correção do limite de cotações](correcao-limite-cotacoes.md).
 
 Esta suíte usa o Angular e o Spring Boot reais, com dados sintéticos e banco H2 em memória. As APIs de cotação são simuladas por um servidor HTTP do launcher Java; não há uso de chaves reais ou requisições financeiras externas.
 
@@ -44,6 +44,8 @@ O comando inicia e encerra seus servidores automaticamente. Portas reservadas: A
 11. Cadastro de BRK.A/BRK.B pelo formulário, busca por caixa diferente, cotação via Twelve Data controlada e duplicidade com 409, sem retirar o ponto ou criar registros adicionais.
 12. Histórico com pesquisa, vazio, limpar filtros, detalhes e preço fracionário, em 320/390/768/1280 px.
 13. Telas-base e navegação por teclado/menu de conta nos perfis ADMIN/USER, nas mesmas quatro larguras, com capturas desktop/celular.
+14. Nove ativos americanos mais câmbio respeitam a cota compartilhada, sem429acidental; FX consultado uma vez, valores convertidos verificados e carteira permanece visível após lote. Captura390px conferida.
+15. 429 externo retorna503 com orientação de limite, mantémJWT válido e impede nova chamada ao provedor durante cooldown.
 
 ## Sessões
 
