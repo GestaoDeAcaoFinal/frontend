@@ -147,11 +147,19 @@ test('interface impede rebaixar ou desativar o último ADMIN', async ({ page, re
   await page.getByLabel('CPF', { exact: true }).fill(cpfDeTeste());
   await page.getByLabel('Telefone com DDD', { exact: true }).fill('(11) 99999-9999');
   await page.getByLabel('Permissão', { exact: true }).selectOption('USER');
+  const rebaixamento = page.waitForResponse(response => response.request().method() === 'PUT'
+    && /\/usuarios\/[0-9]+$/.test(new URL(response.url()).pathname));
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  const respostaRebaixamento = await rebaixamento;
+  expect(respostaRebaixamento.request().postDataJSON().username).toBe(ADMIN.username);
+  expect(respostaRebaixamento.status()).toBe(409);
   await expect(page.getByRole('alert')).toContainText('administrador ativo');
   await page.getByLabel('Permissão', { exact: true }).selectOption('ADMIN');
   await page.getByLabel('Usuário ativo').uncheck();
+  const desativacao = page.waitForResponse(response => response.request().method() === 'PUT'
+    && /\/usuarios\/[0-9]+$/.test(new URL(response.url()).pathname));
   await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+  expect((await desativacao).status()).toBe(409);
   await expect(page.getByRole('alert')).toContainText('administrador ativo');
   expect((await request.get(`${API}/api/usuarios`, { headers: headers(adminToken) })).status()).toBe(200);
 });
